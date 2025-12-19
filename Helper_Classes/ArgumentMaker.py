@@ -147,3 +147,29 @@ def check_port_list(port_list):
             valid = 0
 
     return valid, port_list_compiled
+
+#############################################################################################
+# progress_print
+# @args: fase
+# @return: simbol
+# receives a value from 1 to 4 and returns a string to print, showing the user that progress is being made.
+#############################################################################################
+
+def progress_print(fase):
+    _ = fase
+    simbol = "--"
+    if fase < 0:
+        _ = 1
+    elif fase > 4:
+        _ = 4
+
+    if( _ == 1):
+        simbol = "\\"
+    elif( _ == 2):
+        simbol = "╏"
+    elif( _ == 3):
+        simbol = "/"
+    elif ( _ == 4):
+        simbol="--"
+
+    return simbol

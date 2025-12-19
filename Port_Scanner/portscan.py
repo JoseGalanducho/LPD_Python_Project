@@ -4,6 +4,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import tqdm
 import MainMenu
+from Helper_Classes.ArgumentMaker import progress_print
+
 
 #################################################################################
 # @Author: José Manuel Batista Galanducho
@@ -12,14 +14,14 @@ import MainMenu
 #################################################################################
 
 ####################################################################
-# Port Scan Method
+# Port Scan Function
 # @args: IPs, ports, view, print_file
 #IPs -> IP list |  ports -> port list | view -> 0 or 1 (console or GUI) | print_file = file path to print results to a file
 ###################################################################
 def port_scan(IPs=[""], ports=[""], view="", print_file="" ):
 
     report = []
-
+    fase = 1
     if IPs is None:
         print(colored("No IP list provided!", "red"))
 
@@ -32,10 +34,11 @@ def port_scan(IPs=[""], ports=[""], view="", print_file="" ):
     for ip in IPs:
 
         for port in ports:
+            if fase == 4:
+                fase = 1
             index +=1
             percentage = round(100*(index/total_scans),1)
-            print(colored(f"Scanning {percentage}%","green"))
-            print(colored(f"Scanning-> {ip}:{port}", "green"))
+            print(colored(f"\rScanning {progress_print(fase)} | {percentage}%  -> Scanning-> {ip}:{port} ","green"), end="")
             sckt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sckt.settimeout(1)
             try:
@@ -46,6 +49,7 @@ def port_scan(IPs=[""], ports=[""], view="", print_file="" ):
                 pass
             finally:
                 sckt.close()
+                fase+=1
     for result in report:
         if len(report) == 0:
             print(colored("No avaliable port in the selected IP from the list"))

