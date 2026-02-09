@@ -41,7 +41,9 @@ def main():
             while service != "HTTP" and service != "SSH":
                 service = input("Entrer service (HTTP or SSH):")
                 service = service.upper()
-            LogAnalyzer.log_analyzer(file_path, service)
+                output = input("Enter output format (PDF, CSV, Console:")
+                output = output.upper()
+            LogAnalyzer.log_analyzer(file_path, service, output)
 
 if __name__ == "__main__":
     main()
