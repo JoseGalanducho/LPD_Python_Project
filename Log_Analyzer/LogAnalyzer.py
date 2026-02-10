@@ -12,8 +12,8 @@ import re
 import geoip2.database
 ####################################################################
 # Log Analyzer Method
-# @args: file, service
-#
+# @args: file, service, output
+#file -> file to analyse, service -> type of service (HTTP or SSH), output -> type of output (PDF, CSV or console
 ###################################################################
 
 def log_analyzer(file, service, output):
@@ -94,8 +94,6 @@ def log_analyzer(file, service, output):
             else:
                 for result in results:
                     print(result)
-
-
 
     except Exception as e:
         print(colored(f"Error on Log Analyzer execution: {e}", "red"))

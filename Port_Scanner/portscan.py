@@ -1,8 +1,5 @@
 import socket
 from termcolor import colored
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-import tqdm
 import MainMenu
 from Helper_Classes.ArgumentMaker import progress_print
 

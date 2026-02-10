@@ -6,7 +6,6 @@
 
 import socket
 import random
-
 from termcolor import colored
 from Helper_Classes.ArgumentMaker import progress_print
 
