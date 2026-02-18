@@ -7,8 +7,12 @@ from scapy.all import send
 from scapy.layers.inet import TCP, IP
 from termcolor import colored
 import random
-import tqdm
 
+####################################################################
+# SYN flood Function
+# @args: destination_ip, destination_port, pckt_quantity
+#destination_ip -> target ip |  destination_port -> target port | pckt_quantity -> amount of packages to send
+###################################################################
 def SYN_Flood(destination_ip, destination_port, pckt_quantity = 20):
 
     for pckt in range(pckt_quantity):

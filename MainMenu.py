@@ -17,39 +17,34 @@ def main():
         print(colored(f"=================================================================","green"))
         print(colored(f"==                       Select an option:                     ==", "green"))
         print(colored(f"=================================================================", "green"))
-        print(colored(f"1-Port Scan", "green"))
-        print(colored(f"2-UDP Flood", "green"))
-        print(colored(f"3-SYN Flood", "green"))
-        print(colored(f"4-Log Analyzer", "green"))
-        print(colored(f"5-Secure Message Server", "green"))
-        print(colored(f"6-Secure Message Register Server", "green"))
-        print(colored(f"7-Secure Message Login Server", "green"))
-        print(colored(f"8-Secure Message User", "green"))
-        print(colored(f"q-Exit", "red"))
+        print(colored(f"1-Port Scan\n", "green"))
+        print(colored(f"2-UDP Flood\n", "green"))
+        print(colored(f"3-SYN Flood\n", "green"))
+        print(colored(f"4-Log Analyzer\n", "green"))
         option = input(colored(f"->", "green"))
         if option == "1":
             IPs, ports = ArgumentMaker.ips_and_ports()
             portscan.port_scan(IPs, ports, 0, 0)
-        elif option == "2":
-            print(colored(f'Insert IP address to UPD Flood (DoS), or 0(zero) to exit.', "green"))
+        if option == "2":
             IPs =  ArgumentMaker.insert_IP()
-            print(colored(f'Insert port for UPD Flood (DoS), or 0(zero) to exit.', "green"))
             ports = ArgumentMaker.insert_port()
             pckt_size = int(input("Enter packet size:(default=1024)") or 1024)
             pckt_quantity = int(input("Enter packet quantity:(default=20)") or 20)
             UDPFlood.UDPFlood(IPs, int(ports), pckt_size, pckt_quantity)
-        elif option == "3":
+        if option == "3":
             IPs = ArgumentMaker.insert_IP()
             ports = ArgumentMaker.insert_port()
             pckt_quantity = int(input("Enter packet quantity:(default=20)") or 20)
             SYNFlood.SYN_Flood(IPs, ports, pckt_quantity)
-        elif option == "4":
+        if option == "4":
             service = ""
             file_path = input("Enter log file path:")
             while service != "HTTP" and service != "SSH":
                 service = input("Entrer service (HTTP or SSH):")
                 service = service.upper()
-            LogAnalyzer.log_analyzer(file_path, service)
+                output = input("Enter output format (PDF, CSV, Console:")
+                output = output.upper()
+            LogAnalyzer.log_analyzer(file_path, service, output)
         elif option == "5":
             print(colored(f'Insert IP address for server communication, or 0(zero) to exit.', "green"))
             IP = ArgumentMaker.insert_IP()

