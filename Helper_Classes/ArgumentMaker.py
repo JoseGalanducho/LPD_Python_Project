@@ -47,7 +47,6 @@ def ips_and_ports():
         gate_list = None
     return IP_list, gate_list
 
-
 #############################################################################################
 # insert_IP
 # @args:
@@ -57,7 +56,6 @@ def ips_and_ports():
 ##############################################################################################
 def insert_IP():
     valid_IP = "1"
-    print(colored(f'Insert IP address to UPD Flood (DoS), or 0(zero) to exit.', "green"))
     # --------------------Get IP List ------------------------------------------
     while valid_IP == "1":
         print(colored(f'Insert a valid IPv4 IP.', "green"))
@@ -77,8 +75,7 @@ def insert_IP():
 ##############################################################################################
 def insert_port():
     valid_port = "1"
-    print(colored(f'Insert port for UPD Flood (DoS), or 0(zero) to exit.', "green"))
-    # --------------------Get IP List ------------------------------------------
+    # --------------------Get port List ------------------------------------------
     while valid_port == "1":
         print(colored(f'Insert a valid network port.', "green"))
         port = input("Port:")
