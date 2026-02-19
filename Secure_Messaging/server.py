@@ -157,7 +157,7 @@ def get_local_ip():
 ##############################################################################################
 def start_server(host, port):
     server.bind((host, port))
-    public_key, private_key = KeyManager.get_rsa_keys()
+    public_key, private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
     server.listen()
     print(colored(f"Server active on-> {host}:{port}\n", "green"))
     user_input(public_key, private_key)

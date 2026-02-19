@@ -6,7 +6,7 @@
 import os
 
 #imports
-from cryptography.hazmat.primitives.asymmetric import rsa
+import rsa
 
 #constant variables
 
