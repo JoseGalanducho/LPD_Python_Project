@@ -8,7 +8,6 @@ import hashlib
 import os.path
 import socket
 import threading
-
 import json
 from termcolor import colored
 from Helper_Classes import KeyManager
@@ -17,7 +16,7 @@ import rsa
 #system files
 MESSAGE_LOG = "Secure_Messaging/message_log_"
 USERS_REGISTER = "Secure_Messaging/users_register.json"
-SECRET_KEYS = "secret_keys.pem"
+PRIVATE_KEYS = "secret_keys.pem"
 PUBLIC_KEYS = "public_keys.pem"
 
 # non constant variables
@@ -25,31 +24,6 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 users_list = []
 username_list = []
 public_key_list = []
-
-#############################################################################################
-# get_server_keys
-# @return:
-# Reads the private and public key, if there is no private or public key,
-# it will generate new ones and save them.
-##############################################################################################
-def get_server_keys():
-    server_public_key, server_private_key = rsa.newkeys(1024)
-
-    if os.path.exists(SECRET_KEYS):
-        with open(SECRET_KEYS, "rb") as file:
-            server_secret_key = rsa.PublicKey.load_pkcs1(file.read())
-    else:
-        with open(SECRET_KEYS, "wb") as file:
-            file.write(server_public_key.save_pkcs1("PEM"))
-
-    if os.path.exists(PUBLIC_KEYS):
-        with open(PUBLIC_KEYS, "rb") as file:
-            server_public_key = rsa.PublicKey.load_pkcs1(file.read())
-    else:
-        with open(PUBLIC_KEYS, "wb") as file:
-            file.write(server_public_key.save_pkcs1("PEM"))
-
-    return server_public_key, server_private_key
 
 #############################################################################################
 # message_handler
@@ -84,7 +58,6 @@ def message_handler (user, private_key):
 # @return:
 # Receives a user and message, and sends the message to all users.
 ##############################################################################################
-
 def broadcast(user, message):
     for receiver in users_list:
         index = users_list.index(user)
@@ -184,7 +157,7 @@ def get_local_ip():
 ##############################################################################################
 def start_server(host, port):
     server.bind((host, port))
-    public_key, private_key = get_server_keys()
+    public_key, private_key = KeyManager.get_rsa_keys()
     server.listen()
     print(colored(f"Server active on-> {host}:{port}\n", "green"))
     user_input(public_key, private_key)
@@ -300,8 +273,7 @@ def start_login_server(server_ip, server_port):
     server.bind(server_ip, server_port)
     server.listen()
     print(colored(f"Login server active on-> {server_ip}:{server_port}\n", "green"))
-    server_public_key, server_private_key = get_server_keys()
-
+    server_public_key, server_private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
     while True:
         try:
             user, address = server.accept()
@@ -338,7 +310,7 @@ def start_register_server(server_ip, server_port):
     server.bind(server_ip, server_port)
     server.listen()
     print(colored(f"Register server active on-> {server_ip}:{server_port}\n", "green"))
-    server_public_key, server_private_key = get_server_keys()
+    server_public_key, server_private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
     while True:
         try:
             user, address = server.accept()
