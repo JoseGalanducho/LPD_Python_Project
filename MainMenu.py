@@ -54,13 +54,22 @@ def main():
                 output = input("Enter output format (PDF, CSV, Console:")
                 output = output.upper()
             LogAnalyzer.log_analyzer(file_path, service, output)
+
         if option == "5":
             print(colored(f'Insert IP address for server communication, or 0(zero) to exit.', "green"))
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert port for server communication, or 0(zero) to exit.', "green"))
             port = ArgumentMaker.insert_port()
             server.start_server(IP, int(port))
+
         if option == "6":
+            print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
+            IP = ArgumentMaker.insert_IP()
+            print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
+            port = ArgumentMaker.insert_port()
+            server.start_login_server(IP, int(port))
+
+        if option == "7":
             print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
@@ -68,13 +77,6 @@ def main():
             username = input("Enter username")
             password = input("Enter password")
             user.login(IP, int(port), username, password)
-
-        if option == "7":
-            print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
-            IP = ArgumentMaker.insert_IP()
-            print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
-            port = ArgumentMaker.insert_port()
-            server.start_login_server(IP, int(port))
 
         if option == "8":
             print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
