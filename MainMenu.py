@@ -8,6 +8,7 @@ from SYN_Flood import SYNFlood
 from Helper_Classes import ArgumentMaker
 from Port_Scanner import  portscan
 from Secure_Messaging import server
+from Secure_Messaging import user
 from termcolor import colored
 from UDP_Flood import UDPFlood
 
@@ -22,9 +23,12 @@ def main():
         print(colored(f"3-SYN Flood", "green"))
         print(colored(f"4-Log Analyzer", "green"))
         print(colored(f"5-Secure Messaging Server", "green"))
-        print(colored(f"6-Secure Messaging User", "green"))
-        print(colored(f"7-Secure Messaging Login Server", "green"))
-        print(colored(f"8-Secure Messaging Register Server", "green"))
+        print(colored(f"6-Secure Messaging User Login", "green"))
+        print(colored(f"7-User Login", "green"))
+        print(colored(f"8-Register User", "green"))
+        print(colored(f"9-Get Messages", "green"))
+        print(colored(f"q-Close Program", "red"))
+
         option = input(colored(f"->", "green"))
         if option == "1":
             IPs, ports = ArgumentMaker.ips_and_ports()
@@ -44,7 +48,7 @@ def main():
             service = ""
             file_path = input("Enter log file path:")
             while service != "HTTP" and service != "SSH":
-                service = input("Entrer service (HTTP or SSH):")
+                service = input("Enter service (HTTP or SSH):")
                 service = service.upper()
                 output = input("Enter output format (PDF, CSV, Console:")
                 output = output.upper()
@@ -56,12 +60,29 @@ def main():
             port = ArgumentMaker.insert_port()
             server.start_server(IP, int(port))
         elif option == "6":
-            server.get_local_ip()
+            print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
+            IP = ArgumentMaker.insert_IP()
+            print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
+            port = ArgumentMaker.insert_port()
+            username = input("Enter username")
+            password = input("Enter password")
+            user.login(IP, int(port), username, password)
         elif option == "7":
             server.get_local_ip()
-        elif option == "8":
-            server.get_local_ip()
 
+        elif option == "8":
+            print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
+            IP = ArgumentMaker.insert_IP()
+            print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
+            port = ArgumentMaker.insert_port()
+            username = input("Enter username")
+            password = input("Enter password")
+            server.get_local_ip()
+            registered = user.register(IP, int(port), username, password)
+            if registered:
+                print(colored(f"User {username} successfully registered!", "green"))
+            else:
+                print(colored(f"User {username} not registered!", "red"))
         elif option == "q":
             print(colored(f"Closing Program\n", "red"))
             break
