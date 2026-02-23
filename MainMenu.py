@@ -23,7 +23,7 @@ def main():
         print(colored(f"3-SYN Flood", "green"))
         print(colored(f"4-Log Analyzer", "green"))
         print(colored(f"5-Secure Messaging Server", "green"))
-        print(colored(f"6-Secure Messaging User Login", "green"))
+        print(colored(f"6-Secure Messaging Login Server", "green"))
         print(colored(f"7-User Login", "green"))
         print(colored(f"8-Register User", "green"))
         print(colored(f"9-Get Messages", "green"))
@@ -68,8 +68,13 @@ def main():
             username = input("Enter username")
             password = input("Enter password")
             user.login(IP, int(port), username, password)
+
         if option == "7":
-            server.get_local_ip()
+            print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
+            IP = ArgumentMaker.insert_IP()
+            print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
+            port = ArgumentMaker.insert_port()
+            server.start_login_server(IP, int(port))
 
         if option == "8":
             print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))

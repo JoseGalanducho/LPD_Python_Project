@@ -307,7 +307,7 @@ def start_login_server(server_ip, server_port):
 # Starts the server that allows for users to login.
 ##############################################################################################
 def start_register_server(server_ip, server_port):
-    server.bind(server_ip, server_port)
+    server.bind((server_ip, server_port))
     server.listen()
     print(colored(f"Register server active on-> {server_ip}:{server_port}\n", "green"))
     server_public_key, server_private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
@@ -318,7 +318,6 @@ def start_register_server(server_ip, server_port):
 
             user.send(server_public_key.save_pkcs1("PEM"))
             user_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
-
             message = rsa.decrypt(user.recv(1024), server_private_key).decode()
 
             if "/register" in message:
