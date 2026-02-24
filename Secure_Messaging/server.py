@@ -172,7 +172,7 @@ def start_server(host, port):
 def register_user(username, password):
 
     if not os.path.exists(USERS_REGISTER):
-        with open(USERS_REGISTER, "W") as file:
+        with open(USERS_REGISTER, "w") as file:
             json.dump({}, file)
 
     with open(USERS_REGISTER, "r") as file:
@@ -326,7 +326,8 @@ def start_register_server(server_ip, server_port):
 
             if "/register" in message:
                 reg, username, password = message.split(" ")
-                if reg == "/register" and register_user(username, password):
+                print(f"register detected and {reg} in first place")
+                if "/register" and register_user(username, password):
                     user.send(rsa.encrypt('SUCCESS'.encode(), user_public_key))
                 else:
                     user.send(rsa.encrypt('Register Failed!'.encode(), user_public_key))

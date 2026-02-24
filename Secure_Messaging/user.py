@@ -154,7 +154,7 @@ def register(server_ip, server_port, username, password):
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
     user.send(rsa.encrypt(f"/register {username} {password}".encode(), server_public_key))
-
+    print(f"/register {username} {password}")
     response = rsa.decrypt(user.recv(1024), user_private_key).decode()
 
     if response == "SUCCESS":
