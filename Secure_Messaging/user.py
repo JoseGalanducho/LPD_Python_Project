@@ -148,7 +148,6 @@ def register(server_ip, server_port, username, password):
 
     user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     user.connect((server_ip, server_port))
-    print("user.register 1")
     user_public_key, user_private_key =  KeyManager.get_user_keys(username, PUBLIC_KEYS, PRIVATE_KEYS)
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
@@ -156,7 +155,6 @@ def register(server_ip, server_port, username, password):
     user.send(rsa.encrypt(f"/register {username} {password}".encode(), server_public_key))
 
     response = rsa.decrypt(user.recv(1024), user_private_key).decode()
-    print("user.register 2")
     if response == "SUCCESS":
         print("User registered!")
     else:

@@ -171,20 +171,21 @@ def start_server(host, port):
 ##############################################################################################
 def register_user(username, password):
     print(f"Username: {username}, password: {password}")
+
     if not os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "w") as file:
             json.dump({}, file)
-    print("register_user 1")
+
     with open(USERS_REGISTER, "r") as file:
         users_file = json.load(file)
-    print("register_user 2")
+
     if username in users_file:
         print(colored("User already registered.", "yellow"))
         return False
-    print("register_user 3")
+
     hashed_password = hashlib.sha512(password.encode()).hexdigest()
     users_file[username] = hashed_password
-    print("register_user 4")
+
     with open(USERS_REGISTER, "w") as file:
         json.dump(users_file, file)
     print(colored(f"User {username} registered.", "green."))
@@ -323,18 +324,17 @@ def start_register_server(server_ip, server_port):
             user.send(server_public_key.save_pkcs1("PEM"))
             user_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
             message = rsa.decrypt(user.recv(1024), server_private_key).decode()
-            print("start_register_server 1")
+
             if "/register" in message:
                 reg, username, password = message.split(" ")
                 print(f"register detected and {reg} in first place")
                 if "/register" and register_user(username, password):
-                    print("start_register_server 2")
                     user.send(rsa.encrypt("SUCCESS".encode(), user_public_key))
+
                 else:
-                    print("start_register_server 3")
                     user.send(rsa.encrypt("Register Failed!".encode(), user_public_key))
+
             else:
-                print("start_register_server 4")
                 user.send(rsa.encrypt("Invalid Command!".encode(), user_public_key))
             user.close()
         except Exception as e:
