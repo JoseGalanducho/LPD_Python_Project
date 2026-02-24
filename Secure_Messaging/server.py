@@ -174,22 +174,30 @@ def register_user(username, password):
     if not os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "w") as file:
             json.dump({}, file)
-
+    print("register_user 1")
     with open(USERS_REGISTER, "r") as file:
         users_file = json.load(file)
-
+    print("register_user 2")
     if username in users_file:
         print(colored("User already registered.", "yellow"))
         return False
-
+    print("register_user 3")
     hashed_password = hashlib.sha512(password.encode()).hexdigest()
     users_file[username] = hashed_password
-
+    print("register_user 4")
     with open(USERS_REGISTER, "w") as file:
         json.dump(users_file, file)
+    print("register_user 5")
+    with open(USERS_REGISTER, "r") as file:
+        users_file_writen = json.load(file)
+    if username in users_file_writen:
+        print(colored(f"User {username} registered.", "green."))
+        print("register_user 6")
+        return True
+    else:
+        print("register_user 7")
+        return False
 
-    print(colored(f"User {username} registered.", "green."))
-    return True
 
 #############################################################################################
 # user_login
