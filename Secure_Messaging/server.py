@@ -16,8 +16,8 @@ import rsa
 #system files
 MESSAGE_LOG = "Secure_Messaging/message_log_"
 USERS_REGISTER = "Secure_Messaging/users_register.json"
-PRIVATE_KEYS = "secret_keys.pem"
-PUBLIC_KEYS = "public_keys.pem"
+PRIVATE_KEYS = "Secure_Messaging/server_secret_keys.pem"
+PUBLIC_KEYS = "Secure_Messaging/server_public_keys.pem"
 
 # non constant variables
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -190,12 +190,13 @@ def register_user(username, password):
     print("register_user 5")
     with open(USERS_REGISTER, "r") as file:
         users_file_writen = json.load(file)
+        print("register_user 6")
     if username in users_file_writen:
         print(colored(f"User {username} registered.", "green."))
-        print("register_user 6")
+        print("register_user 7")
         return True
     else:
-        print("register_user 7")
+        print("register_user 8")
         return False
 
 
@@ -331,16 +332,19 @@ def start_register_server(server_ip, server_port):
             user.send(server_public_key.save_pkcs1("PEM"))
             user_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
             message = rsa.decrypt(user.recv(1024), server_private_key).decode()
-
+            print("start_register_server 1")
             if "/register" in message:
                 reg, username, password = message.split(" ")
                 print(f"register detected and {reg} in first place")
                 if "/register" and register_user(username, password):
-                    user.send(rsa.encrypt('SUCCESS'.encode(), user_public_key))
+                    print("start_register_server 2")
+                    user.send(rsa.encrypt("SUCCESS".encode(), user_public_key))
                 else:
-                    user.send(rsa.encrypt('Register Failed!'.encode(), user_public_key))
+                    print("start_register_server 3")
+                    user.send(rsa.encrypt("Register Failed!".encode(), user_public_key))
             else:
-                user.send(rsa.encrypt('Invalid Command!'.encode(), user_public_key))
+                print("start_register_server 4")
+                user.send(rsa.encrypt("Invalid Command!".encode(), user_public_key))
             user.close()
         except Exception as e:
             print(colored(f"[-] Error: {e}", "red"))

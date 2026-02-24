@@ -13,8 +13,8 @@ from termcolor import colored
 from Helper_Classes import KeyManager
 
 #Constants
-PRIVATE_KEYS = "rsa_secret_"
-PUBLIC_KEYS = "rsa_public_"
+PRIVATE_KEYS = "Secure_Messaging/rsa_secret_"
+PUBLIC_KEYS = "Secure_Messaging/rsa_public_"
 
 #############################################################################################
 # user_begin
@@ -150,11 +150,11 @@ def register(server_ip, server_port, username, password):
     user.connect((server_ip, server_port))
     print("user.register 1")
     user_public_key, user_private_key =  KeyManager.get_user_keys(username, PUBLIC_KEYS, PRIVATE_KEYS)
-
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
     print(f"/register {username} {password}")
     user.send(rsa.encrypt(f"/register {username} {password}".encode(), server_public_key))
+
     response = rsa.decrypt(user.recv(1024), user_private_key).decode()
     print("user.register 2")
     if response == "SUCCESS":
