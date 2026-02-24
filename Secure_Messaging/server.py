@@ -172,7 +172,7 @@ def start_server(host, port):
 def register_user(username, password):
 
     if not os.path.exists(USERS_REGISTER):
-        with open(USERS_REGISTER, "w") as file:
+        with open(USERS_REGISTER, "W") as file:
             json.dump({}, file)
 
     with open(USERS_REGISTER, "r") as file:
@@ -201,14 +201,18 @@ def register_user(username, password):
 def user_login(username, password):
     if os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "r") as file:
-            users_list = json.load(file)
+            users = json.load(file)
     else:
         print("Login data error.")
         return False
 
+    if username not in users:
+        print(colored(f"Invalid username.", "red"))
+        return False
+
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    if users_list[username] != hashed_password or username not in users_list:
-        print(colored(f"Invalid login", "red"))
+    if users_list[username] != hashed_password:
+        print(colored(f"Invalid login.", "red"))
         return False
 
     print(colored(f"Login successful!", "green"))
@@ -270,7 +274,7 @@ def get_encrypted_messages(username):
 ##############################################################################################
 
 def start_login_server(server_ip, server_port):
-    server.bind(server_ip, server_port)
+    server.bind((server_ip, server_port))
     server.listen()
     print(colored(f"Login server active on-> {server_ip}:{server_port}\n", "green"))
     server_public_key, server_private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
@@ -321,7 +325,7 @@ def start_register_server(server_ip, server_port):
             message = rsa.decrypt(user.recv(1024), server_private_key).decode()
 
             if "/register" in message:
-                reg, username, password = message.split()
+                reg, username, password = message.split(" ")
                 if reg == "/register" and register_user(username, password):
                     user.send(rsa.encrypt('SUCCESS'.encode(), user_public_key))
                 else:

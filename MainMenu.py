@@ -85,8 +85,8 @@ def main():
             port = ArgumentMaker.insert_port()
             username = input("Enter username: ")
             password = input("Enter password: ")
-            server.get_local_ip()
             registered = user.register(IP, int(port), username, password)
+
             if registered:
                 print(colored(f"User {username} successfully registered!", "green"))
             else:

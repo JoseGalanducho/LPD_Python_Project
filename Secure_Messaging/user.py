@@ -158,9 +158,9 @@ def register(server_ip, server_port, username, password):
     response = rsa.decrypt(user.recv(1024), user_private_key).decode()
 
     if response == "SUCCESS":
-        return True
+        print("User registered!")
     else:
-        return False
+        print("Registration Error!")
 
 ############################################################################################
 # get_message_history
