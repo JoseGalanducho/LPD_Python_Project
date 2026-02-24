@@ -170,7 +170,7 @@ def start_server(host, port):
 # The systems receives the username and password and registers the new user.
 ##############################################################################################
 def register_user(username, password):
-
+    print(f"Username: {username}, password: {password}")
     if not os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "w") as file:
             json.dump({}, file)
@@ -187,17 +187,8 @@ def register_user(username, password):
     print("register_user 4")
     with open(USERS_REGISTER, "w") as file:
         json.dump(users_file, file)
-    print("register_user 5")
-    with open(USERS_REGISTER, "r") as file:
-        users_file_writen = json.load(file)
-        print("register_user 6")
-    if username in users_file_writen:
-        print(colored(f"User {username} registered.", "green."))
-        print("register_user 7")
-        return True
-    else:
-        print("register_user 8")
-        return False
+    print(colored(f"User {username} registered.", "green."))
+    return True
 
 
 #############################################################################################
