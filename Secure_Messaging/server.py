@@ -191,34 +191,6 @@ def register_user(username, password):
     print(colored(f"User {username} registered.", "green."))
     return True
 
-
-#############################################################################################
-# user_login
-# @args: username -> user name on the chat
-# @args: password -> user password
-# @return:
-# The systems receives the username and password and logs the user on the server.
-##############################################################################################
-def user_login(username, password):
-    if os.path.exists(USERS_REGISTER):
-        with open(USERS_REGISTER, "r") as file:
-            users = json.load(file)
-    else:
-        print("Login data error.")
-        return False
-
-    if username not in users:
-        print(colored(f"Invalid username.", "red"))
-        return False
-
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    if users_list[username] != hashed_password:
-        print(colored(f"Invalid login.", "red"))
-        return False
-
-    print(colored(f"Login successful!", "green"))
-    return True
-
 #############################################################################################
 # user_list
 # @args:
@@ -283,26 +255,57 @@ def start_login_server(server_ip, server_port):
         try:
             user, address = server.accept()
             print(colored(f"[+] Username: {user} is connected from {address}.", "green"))
-
+            print("start_login_server -------------------------------------->1")
             user.send(server_public_key.save_pkcs1("PEM"))
             user_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
-
+            print("start_login_server -------------------------------------->2")
             message = rsa.decrypt(user.recv(1024), server_private_key).decode()
 
             if "/login" in message:
-                log, username, password = message.split()
+                log, username, password = message.split(" ")
                 if log == "/login" and user_login(username, password):
                     user.send(rsa.encrypt('SUCCESS'.encode(), user_public_key))
+                    print("start_login_server -------------------------------------->3")
                 else:
                     user.send(rsa.encrypt('Login Failed!'.encode(), user_public_key))
+                    print("start_login_server -------------------------------------->4")
             else:
                 user.send(rsa.encrypt('Invalid Command!'.encode(), user_public_key))
+                print("start_login_server -------------------------------------->5")
             user.close()
         except Exception as e:
             print(colored(f"[-] Error: {e}", "red"))
             user.close()
         finally:
             user.close()
+
+#############################################################################################
+# user_login
+# @args: username -> user name on the chat
+# @args: password -> user password
+# @return:
+# The systems receives the username and password and logs the user on the server.
+##############################################################################################
+def user_login(username, password):
+    if os.path.exists(USERS_REGISTER):
+        with open(USERS_REGISTER, "r") as file:
+            users = json.load(file)
+    else:
+        print("Login data error.")
+        return False
+
+    if username not in users:
+        print(colored(f"Invalid username.", "red"))
+        return False
+
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+    if users_list[username] != hashed_password:
+        print(colored(f"Invalid login.", "red"))
+        return False
+
+    print(colored(f"Login successful!", "green"))
+    return True
 
 #############################################################################################
 # start_register_server
