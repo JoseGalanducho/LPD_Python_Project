@@ -25,15 +25,18 @@ from Helper_Classes import KeyManager
 # #connection and communication with the server
 ##############################################################################################
 def user_begin(server_ip, server_port, username):
+    print(colored(f"User connecting to {server_ip}:{server_port} with username {username}", "green"))
     public_key, private_key = KeyManager.get_user_keys(username)
-
     user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
+
         user.connect((server_ip, server_port))
+
     except:
-        print("Connection error")
+        print("Connection error ")
         return
+
     print(colored(f"{username} connected to server", "green"))
     print(colored(f"type '/leave' to leave the chat.","red"))
 

@@ -60,11 +60,10 @@ def message_handler (user, private_key):
 ##############################################################################################
 def broadcast(user, message):
     for receiver in users_list:
-        index = users_list.index(user)
+        index = users_list.index(receiver)
         if receiver != user:
             message_send = rsa.encrypt(message, public_key_list[index])
             user.send(message_send)
-
     save_message(message_send)
 
 #############################################################################################
@@ -120,9 +119,9 @@ def user_input(public_key, private_key):
             print(colored(f"[+] Username: {user} -> Address: {str(address)}", "green"))
 
             user.send(public_key.save_pkcs1("PEM"))
-            user_public_key = rsa.PublicKey.load_pkcs1(user.recv(user.recv(1024)))
+            user_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
 
-            user.send(rsa.rsa.encrypt('REQUEST_USER'.encode(), user_public_key))
+            user.send(rsa.encrypt('REQUEST_USER'.encode(), user_public_key))
             user_name = rsa.decrypt(user.recv(1024), private_key).decode()
 
             username_list.append(user_name)
@@ -256,23 +255,18 @@ def start_login_server(server_ip, server_port):
         try:
             user, address = server.accept()
             print(colored(f"[+] Username: {user} is connected from {address}.", "green"))
-            print("start_login_server -------------------------------------->1")
             user.send(server_public_key.save_pkcs1("PEM"))
             user_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
-            print("start_login_server -------------------------------------->2")
             message = rsa.decrypt(user.recv(1024), server_private_key).decode()
 
             if "/login" in message:
                 log, username, password = message.split(" ")
                 if log == "/login" and user_login(username, password) == True:
                     user.send(rsa.encrypt('SUCCESS'.encode(), user_public_key))
-                    print("start_login_server -------------------------------------->3")
                 else:
                     user.send(rsa.encrypt('Login Failed!'.encode(), user_public_key))
-                    print("start_login_server -------------------------------------->4")
             else:
                 user.send(rsa.encrypt('Invalid Command!'.encode(), user_public_key))
-                print("start_login_server -------------------------------------->5")
             user.close()
         except Exception as e:
             print(colored(f"[-] Error: {e}", "red"))

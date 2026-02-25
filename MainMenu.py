@@ -102,7 +102,7 @@ def main():
                 chat_server_IP = ArgumentMaker.insert_IP()
                 print(colored(f'Insert chat server port.', "green"))
                 chat_server_port = ArgumentMaker.insert_port()
-                chat_user = user.user_begin(chat_server_IP, chat_server_port, username)
+                chat_user = user.user_begin(chat_server_IP, int(chat_server_port), username)
                 if chat_user:
                     print(colored(f'Message server active, you can chat now.', "blue"))
                     while chat_user:
