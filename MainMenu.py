@@ -22,12 +22,12 @@ def main():
         print(colored(f"2-UDP Flood", "green"))
         print(colored(f"3-SYN Flood", "green"))
         print(colored(f"4-Log Analyzer", "green"))
-        print(colored(f"5-Secure Messaging Server", "green"))
-        print(colored(f"6-Secure Messaging Login Server", "green"))
-        print(colored(f"7-Start Register Server", "green"))
+        print(colored(f"5-Start Secure Messaging Server", "green"))
+        print(colored(f"6-Start Secure Messaging Login Server", "green"))
+        print(colored(f"7-Start Secure Messaging Register Server", "green"))
         print(colored(f"8-Register User", "green"))
-        print(colored(f"9-Get Messages", "green"))
-        print(colored(f"10-Login User", "green"))
+        print(colored(f"9-Connect User to Secure Messaging", "green"))
+        print(colored(f"10-Get Messages", "green"))
         print(colored(f"q-Close Program", "red"))
         option = input(colored(f"->", "green"))
 
@@ -88,23 +88,37 @@ def main():
             username = input("Enter username: ")
             password = input("Enter password: ")
             user.register(IP, int(port), username, password)
+            ## Login User
         elif option == "9":
-            print ("Not Done")
+            print(colored("Login to messaging server", "blue"))
+            print(colored(f'Insert login server IP address.', "green"))
+            IP = ArgumentMaker.insert_IP()
+            print(colored(f'Insert login server port.', "green"))
+            port = ArgumentMaker.insert_port()
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            if user.login(IP, int(port), username, password) == True:
+                print(colored(f'Insert chat server IP address.', "green"))
+                chat_server_IP = ArgumentMaker.insert_IP()
+                print(colored(f'Insert chat server port.', "green"))
+                chat_server_port = ArgumentMaker.insert_port()
+                chat_user = user.user_begin(chat_server_IP, chat_server_port, username)
+                if chat_user:
+                    print(colored(f'Message server active, you can chat now.', "blue"))
+                    while chat_user:
+                        pass
+                else:
+                    print(colored(f'Message server not active, try again.', "red"))
+                    continue
+            ## Login User
+        elif option == "10":
+            print("Not Done")
             print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
             port = ArgumentMaker.insert_port()
             username = input("Enter username: ")
             user.get_message_history(IP, int(port), username)
-            ## Login User
-        elif option == "10":
-            print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
-            IP = ArgumentMaker.insert_IP()
-            print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
-            port = ArgumentMaker.insert_port()
-            username = input("Enter username")
-            password = input("Enter password")
-            user.login(IP, int(port), username, password)
 
         elif option == "q":
             print(colored(f"Closing Program\n", "red"))

@@ -9,6 +9,8 @@ import os
 import rsa
 
 #constant variables
+USER_PRIVATE_KEYS = "Secure_Messaging/rsa_secret_"
+USER_PUBLIC_KEYS = "Secure_Messaging/rsa_public_"
 
 #############################################################################################
 # get_server_keys
@@ -42,22 +44,22 @@ def get_rsa_keys(public_keys_file, private_keys_file):
 # @return:
 # Generates a pair of rsa keys or reads the keys if they already exists
 ##############################################################################################
-def get_user_keys(username, public_keys_file, private_keys_file):
+def get_user_keys(username):
 
     user_public_key, user_private_key  = rsa.newkeys(1024)
 
-    if os.path.exists(public_keys_file + username + ".pem"):
-        with open(public_keys_file + username + ".pem", "rb") as file:
+    if os.path.exists(USER_PUBLIC_KEYS + username + ".pem"):
+        with open(USER_PUBLIC_KEYS + username + ".pem", "rb") as file:
             user_public_key = rsa.PublicKey.load_pkcs1(file.read())
     else:
-        with open(public_keys_file + username + ".pem", "wb") as file:
+        with open(USER_PUBLIC_KEYS + username + ".pem", "wb") as file:
             file.write(user_public_key.save_pkcs1("PEM"))
 
-    if os.path.exists(private_keys_file + username + ".pem"):
-        with open(private_keys_file + username + ".pem", "rb") as file:
+    if os.path.exists(USER_PRIVATE_KEYS + username + ".pem"):
+        with open(USER_PRIVATE_KEYS + username + ".pem", "rb") as file:
             user_private_key = rsa.PrivateKey.load_pkcs1(file.read())
     else:
-        with open(private_keys_file + username + ".pem", "wb") as file:
+        with open(USER_PRIVATE_KEYS + username + ".pem", "wb") as file:
             file.write(user_private_key.save_pkcs1("PEM"))
 
     return user_public_key, user_private_key

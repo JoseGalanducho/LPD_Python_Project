@@ -134,9 +134,10 @@ def user_input(public_key, private_key):
             user.send(rsa.encrypt('REQUEST_USER'.encode(), public_key))
 
             thread = threading.Thread(target=message_handler, args=(public_key, private_key))
-
+            thread.start()
         except Exception as e:
             print(colored(f"[-] Error: {e}", "red"))
+            server.close()
             break
 
 #############################################################################################
@@ -183,12 +184,12 @@ def register_user(username, password):
         print(colored("User already registered.", "yellow"))
         return False
 
-    hashed_password = hashlib.sha512(password.encode()).hexdigest()
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
     users_file[username] = hashed_password
 
     with open(USERS_REGISTER, "w") as file:
         json.dump(users_file, file)
-    print(colored(f"User {username} registered.", "green."))
+    print(colored(f"User {username} registered.", "green"))
     return True
 
 #############################################################################################
@@ -263,7 +264,7 @@ def start_login_server(server_ip, server_port):
 
             if "/login" in message:
                 log, username, password = message.split(" ")
-                if log == "/login" and user_login(username, password):
+                if log == "/login" and user_login(username, password) == True:
                     user.send(rsa.encrypt('SUCCESS'.encode(), user_public_key))
                     print("start_login_server -------------------------------------->3")
                 else:
@@ -294,14 +295,10 @@ def user_login(username, password):
         print("Login data error.")
         return False
 
-    if username not in users:
-        print(colored(f"Invalid username.", "red"))
-        return False
-
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-    if users_list[username] != hashed_password:
-        print(colored(f"Invalid login.", "red"))
+    if username not in users or  users[username] != hashed_password:
+        print(colored(f"Invalid login credentials.", "red"))
         return False
 
     print(colored(f"Login successful!", "green"))

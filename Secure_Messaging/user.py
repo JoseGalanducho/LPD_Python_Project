@@ -13,22 +13,22 @@ from termcolor import colored
 from Helper_Classes import KeyManager
 
 #Constants
-PRIVATE_KEYS = "Secure_Messaging/rsa_secret_"
-PUBLIC_KEYS = "Secure_Messaging/rsa_public_"
+
 
 #############################################################################################
 # user_begin
-# @args: username -> the user to disconnect
-# @args: server_ip -> server dcomunication IP
+# @args: username -> the user to connect
+# @args: server_ip -> server communication IP
 # @args: server_port -> server communication port
 # @return:
 # Receives user data and starts the user
 # #connection and communication with the server
 ##############################################################################################
 def user_begin(server_ip, server_port, username):
-    public_key, private_key = KeyManager.get_user_keys(username, PUBLIC_KEYS, PRIVATE_KEYS)
+    public_key, private_key = KeyManager.get_user_keys(username)
 
     user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     try:
         user.connect((server_ip, server_port))
     except:
@@ -61,7 +61,7 @@ def user_begin(server_ip, server_port, username):
 # Returns a list of messages decoded
 ##############################################################################################
 def decode_messages(username, messages):
-    public_key, private_key =  KeyManager.get_user_keys(username, PUBLIC_KEYS, PRIVATE_KEYS)
+    public_key, private_key =  KeyManager.get_user_keys(username)
     decoded_messages = []
     for message in messages:
         decoded_messages.append(rsa.decrypt(message, private_key).decode())
@@ -119,7 +119,7 @@ def login(server_ip, server_port, username, password):
         print("Server not found")
         return False
 
-    user_public_key, user_private_key =  KeyManager.get_user_keys(username, PUBLIC_KEYS, PRIVATE_KEYS)
+    user_public_key, user_private_key =  KeyManager.get_user_keys(username)
 
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
@@ -148,13 +148,13 @@ def register(server_ip, server_port, username, password):
 
     user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     user.connect((server_ip, server_port))
-    user_public_key, user_private_key =  KeyManager.get_user_keys(username, PUBLIC_KEYS, PRIVATE_KEYS)
+    user_public_key, user_private_key =  KeyManager.get_user_keys(username)
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
-    print(f"/register {username} {password}")
     user.send(rsa.encrypt(f"/register {username} {password}".encode(), server_public_key))
 
     response = rsa.decrypt(user.recv(1024), user_private_key).decode()
+
     if response == "SUCCESS":
         print("User registered!")
     else:
@@ -173,7 +173,7 @@ def get_message_history(server_ip, server_port, username):
     user= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     user.connect((server_ip, server_port))
 
-    user_public_key, user_private_key =  KeyManager.get_user_keys(username, PUBLIC_KEYS, PRIVATE_KEYS)
+    user_public_key, user_private_key =  KeyManager.get_user_keys(username)
 
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
@@ -208,7 +208,7 @@ def get_users(server_ip, server_port, username):
     user= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     user.connect((server_ip, server_port))
 
-    user_public_key, user_private_key =  KeyManager.get_user_keys(username, PUBLIC_KEYS, PRIVATE_KEYS)
+    user_public_key, user_private_key =  KeyManager.get_user_keys(username)
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
 
