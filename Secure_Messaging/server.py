@@ -6,9 +6,13 @@
 #Imports
 import hashlib
 import os.path
+import pickle
 import socket
 import threading
 import json
+from pydoc import cli
+from sys import exec_prefix
+
 from termcolor import colored
 from Helper_Classes import KeyManager
 import rsa
@@ -37,17 +41,19 @@ def message_handler (user, private_key):
     while True:
         try:
             message = rsa.decrypt(user.recv(1024), private_key)
+            print(f"message: {message}")
             if not message:
-                break
+                user_logout(user)
 
             if '/leave' in message.decode():
                 user_index = users_list.index(user)
                 user.send(rsa.encrypt('/leave command inserted.'.encode(), public_key_list[user_index]))
                 user_logout(user)
                 break
-            broadcast(user, message)
+            broadcast(message, user)
 
         except Exception as e:
+            print(colored(f"[-] Error: {e}", "red"))
             user_logout(user)
             break
 
@@ -58,13 +64,13 @@ def message_handler (user, private_key):
 # @return:
 # Receives a user and message, and sends the message to all users.
 ##############################################################################################
-def broadcast(user, message):
-    for receiver in users_list:
-        index = users_list.index(receiver)
-        if receiver != user:
+def broadcast(message, origin_user):
+    for user  in users_list:
+        index = users_list.index(user)
+        if user != origin_user:
             message_send = rsa.encrypt(message, public_key_list[index])
             user.send(message_send)
-    save_message(message_send)
+    save_message(message)
 
 #############################################################################################
 # save_message
@@ -76,18 +82,18 @@ def broadcast(user, message):
 def save_message(message):
     for user in users_list:
         index = users_list.index(user)
-        username = users_list[index]
+        username = username_list[index]
         public_key = public_key_list[index]
         file_path = MESSAGE_LOG+username+".json"
         if not os.path.exists(file_path):
             with open(file_path, "w") as file:
-                json.dump({"username": username, "message": [rsa.encrypt(message, public_key).hex()]}, file)
+                json.dump({"messages":[rsa.encrypt(message, public_key).hex()]}, file)
         else:
             with open(file_path, "r") as file:
-                message = json.load(file)
-                message["message"].append(rsa.encrypt(message, public_key).hex())
+                message_list = json.load(file)
+                message_list["messages"].append(rsa.encrypt(message, public_key).hex())
             with open(file_path, "w") as file:
-                json.dump(message, file)
+                json.dump(message_list, file)
 
 #############################################################################################
 # user_logout
@@ -98,12 +104,12 @@ def save_message(message):
 def user_logout(user):
     index = users_list.index(user)
     users_list.remove(user)
-    user.close()
     username = username_list[index]
     username_list.remove(username)
     public_key_list.remove(public_key_list[index])
     print(colored(f"{username} disconnected from the server!", "red"))
     broadcast(f'{username} left the chat!'.encode(), user)
+    user.close()
 
 #############################################################################################
 # user_input
@@ -117,22 +123,17 @@ def user_input(public_key, private_key):
         try:
             user, address = server.accept()
             print(colored(f"[+] Username: {user} -> Address: {str(address)}", "green"))
-
             user.send(public_key.save_pkcs1("PEM"))
             user_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
-
             user.send(rsa.encrypt('REQUEST_USER'.encode(), user_public_key))
-            user_name = rsa.decrypt(user.recv(1024), private_key).decode()
-
-            username_list.append(user_name)
+            username = rsa.decrypt(user.recv(1024), private_key).decode()
+            username_list.append(username)
             users_list.append(user)
-
             public_key_list.append(user_public_key)
-            print(colored(f"[+] Username: {user_name} is connected.", "green"))
-            broadcast(f"{user_name} is connected.", "green")
-            user.send(rsa.encrypt('REQUEST_USER'.encode(), public_key))
-
-            thread = threading.Thread(target=message_handler, args=(public_key, private_key))
+            print(colored(f"[+] Username: {username} is connected.", "green"))
+            broadcast(f"{username} is connected.".encode(), user)
+            user.send(rsa.encrypt('Connected to server!'.encode(), user_public_key))
+            thread = threading.Thread(target=message_handler, args=(user, private_key,))
             thread.start()
         except Exception as e:
             print(colored(f"[-] Error: {e}", "red"))
@@ -170,7 +171,6 @@ def start_server(host, port):
 # The systems receives the username and password and registers the new user.
 ##############################################################################################
 def register_user(username, password):
-    print(f"Username: {username}, password: {password}")
 
     if not os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "w") as file:
@@ -201,7 +201,6 @@ def user_list():
     if os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "r") as file:
             users_list = json.load(file)
-            print(colored(f"Users list: {users_list}", "green"))
             for user in users_list:
                 print(colored(f"User: {user}", "green"))
 
@@ -225,8 +224,8 @@ def get_encrypted_messages(username):
         print(colored(f"User {username} not registered.", "red"))
         return
 
-    if os.path.exists(MESSAGE_LOG+username+".log"):
-        with open(MESSAGE_LOG+username+".log", "r") as file:
+    if os.path.exists(MESSAGE_LOG+username+".json"):
+        with open(MESSAGE_LOG+username+".json", "r") as file:
             messages = json.load(file)["messages"]
     else:
         print(colored(f"No messages registered.", "red"))
@@ -336,3 +335,77 @@ def start_register_server(server_ip, server_port):
             user.close()
         finally:
             user.close()
+
+###############################################################
+#
+# Data server
+#
+###############################################################
+
+def start_data_server(host, port):
+
+    server.bind((host, port))
+    server.listen()
+    print(f"Stored Data Server listening on {host}:{port}")
+    server_public_key, server_private_key =  KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
+    get_stored_data(server_public_key, server_private_key)
+
+
+###############################################################
+#
+# Stored_data_commands
+#
+###############################################################
+
+def get_stored_data(public_key, private_key):
+    while True:
+        try:
+
+            user, address = server.accept()
+            print(colored(f"[+] Username: {user} is connected from {address}.", "green"))
+
+            user.send(public_key.save_pkcs1("PEM"))
+            user_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
+            message = rsa.decrypt(user.recv(1024), private_key).decode()
+
+            if "/message_history" in message:
+                request, username = message.split(" ")
+                message_list = process_messages(username)
+                message_history = pickle.dumps(message_list)
+                user.sendall(message_history)
+            else:
+                user.send(rsa.encrypt("Invalid Option.".encode(), user_public_key))
+            user.close()
+        except Exception as e:
+            print(colored(f"Error: {e}", "red"))
+            user.close()
+        finally:
+            user.close()
+
+
+###############################################################
+#
+# Process Message History
+#
+###############################################################
+
+def process_messages(username):
+
+    with open(USERS_REGISTER, "r") as file:
+        registered_users = json.load(file)
+
+    if username not in registered_users:
+        print(colored("Username not found.", "red"))
+        return
+
+    if os.path.exists(MESSAGE_LOG+username+".json"):
+        with open(MESSAGE_LOG+username+".json", "r") as message_file:
+            messages = json.load(message_file)["messages"]
+            message_history = []
+            for message in messages:
+                message_history.append(bytes.fromhex(message))
+            return message_history
+    else:
+        print(colored(f"[-] No message history for {username}.", "red"))
+        return
+

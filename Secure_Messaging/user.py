@@ -27,12 +27,11 @@ from Helper_Classes import KeyManager
 def user_begin(server_ip, server_port, username):
     print(colored(f"User connecting to {server_ip}:{server_port} with username {username}", "green"))
     public_key, private_key = KeyManager.get_user_keys(username)
+
     user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
-
         user.connect((server_ip, server_port))
-
     except:
         print("Connection error ")
         return
@@ -44,13 +43,16 @@ def user_begin(server_ip, server_port, username):
     user.send(public_key.save_pkcs1("PEM"))
 
     message = rsa.decrypt(user.recv(1024), private_key).decode()
+    print(colored(f"Server request: {message}", "yellow"))
+
     user.send(rsa.encrypt(username.encode(), server_public_key))
 
-    in_thread = threading.Thread(target=read_message,args=(user, private_key))
-    in_thread.daemon=True
+    stop = threading.Event()
+    in_thread = threading.Thread(target=read_message, args=(user, private_key,stop,))
+    in_thread.daemon = True
     in_thread.start()
 
-    out_thread = threading.Thread(target=send_message,args=(user,message,private_key))
+    out_thread = threading.Thread(target=send_message, args=(user, server_public_key, stop, username,))
     out_thread.daemon = True
     out_thread.start()
 
@@ -77,19 +79,21 @@ def decode_messages(username, messages):
 # @return:
 # Receives messages from the server and decodes the message
 ##############################################################################################
-def read_message(user, user_private_key):
-    while True:
+def read_message(user, user_private_key, stop):
+    while not stop.is_set() :
         try:
             message = rsa.decrypt(user.recv(1024), user_private_key).decode()
+            print(f"message: {message}")
             if message == "/leave":
-                user.close()
+                stop.set()
                 break
             else:
                 print(message)
         except:
             print("System error, closing chat.")
-            user.close()
+            stop.set()
             break
+    user.close()
 
 #############################################################################################
 # send_message
@@ -99,10 +103,23 @@ def read_message(user, user_private_key):
 # @return:
 # Receives input message from user to write on the server chat
 ##############################################################################################
-def send_message(user, server_public_key, username=None):
-    while True:
-        message = input(f"{username} > {input('')}")
-        user.send(rsa.encrypt(message.encode(), server_public_key))
+def send_message(user, server_public_key, stop, username=None):
+    while not stop.is_set():
+        try:
+            user_message = input("")
+            if stop.is_set():
+                break
+            message = f"{username}: {user_message}"
+            user.send(rsa.encrypt(message.encode(), server_public_key))
+
+            if "/leave" in user_message:
+                stop.set()
+                break
+
+        except Exception as e:
+            print(f"Erro: {e}")
+            stop.set()
+            break
 
 #############################################################################################
 # login
@@ -181,20 +198,22 @@ def get_message_history(server_ip, server_port, username):
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
 
-    user.send(rsa.decrypt(f"/history {username}".encode(), server_public_key))
+    user.send(rsa.encrypt(f"/message_history {username}".encode(), server_public_key))
 
     historic = b""
     while True:
-        chunk = user.recv(1024)
+        chunk = user.recv(4096)
         if not chunk:
             break
-
         historic += chunk
-    messages = pickle.loads(historic)
-    messages = decode_messages(username, messages)
+    try:
+        messages = pickle.loads(historic)
+        messages = decode_messages(username, messages)
+    except Exception as e:
+        print(colored(f"Error: {e}", "red"))
 
     print("\n")
-    print(colored(f"{username} historic:", "green"))
+    print(colored(f"{username} message history:", "green"))
     for message in messages:
         print(colored(message, "green"))
 
