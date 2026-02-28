@@ -19,7 +19,13 @@ USER_PUBLIC_KEYS = "Secure_Messaging/rsa_public_"
 # it will generate new ones and save them.
 ##############################################################################################
 def get_rsa_keys(public_keys_file, private_keys_file):
-
+    """
+    get_rsa_keys function
+    Reads, or generates rsa keys for the servers.
+    :param public_keys_file: Filepath to save the public keys.
+    :param private_keys_file: Filepath to save the private keys.
+    :return:
+    """
     public_key, private_key = rsa.newkeys(1024)
 
     if not os.path.exists(public_keys_file):
@@ -45,7 +51,12 @@ def get_rsa_keys(public_keys_file, private_keys_file):
 # Generates a pair of rsa keys or reads the keys if they already exists
 ##############################################################################################
 def get_user_keys(username):
-
+    """
+    get_user_keys function
+    Reads user rsa keys if available, otherwise generates rsa keys.
+    :param username: User username.
+    :return:
+    """
     user_public_key, user_private_key  = rsa.newkeys(1024)
 
     if os.path.exists(USER_PUBLIC_KEYS + username + ".pem"):

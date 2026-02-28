@@ -25,6 +25,14 @@ from Helper_Classes import KeyManager
 # #connection and communication with the server
 ##############################################################################################
 def user_begin(server_ip, server_port, username):
+    """
+    user_begin function
+    Starts the user connection to the server.
+    :param server_ip: Server connection IP.
+    :param server_port: Server connection port.
+    :param username: User username.
+    :return: returns the user, or null if something goes wrong.
+    """
     print(colored(f"User connecting to {server_ip}:{server_port} with username {username}", "green"))
     public_key, private_key = KeyManager.get_user_keys(username)
 
@@ -44,15 +52,13 @@ def user_begin(server_ip, server_port, username):
 
     message = rsa.decrypt(user.recv(1024), private_key).decode()
     print(colored(f"Server request: {message}", "yellow"))
-
     user.send(rsa.encrypt(username.encode(), server_public_key))
 
-    stop = threading.Event()
-    in_thread = threading.Thread(target=read_message, args=(user, private_key,stop,))
+    in_thread = threading.Thread(target=read_message, args=(user, private_key,))
     in_thread.daemon = True
     in_thread.start()
 
-    out_thread = threading.Thread(target=send_message, args=(user, server_public_key, stop, username,))
+    out_thread = threading.Thread(target=send_message, args=(user, server_public_key, username,))
     out_thread.daemon = True
     out_thread.start()
 
@@ -66,6 +72,12 @@ def user_begin(server_ip, server_port, username):
 # Returns a list of messages decoded
 ##############################################################################################
 def decode_messages(username, messages):
+    """
+    decoded_messages function
+    :param username: User username
+    :param messages: list of messages sent by the user
+    :return: list of decoded messages.
+    """
     public_key, private_key =  KeyManager.get_user_keys(username)
     decoded_messages = []
     for message in messages:
@@ -79,21 +91,26 @@ def decode_messages(username, messages):
 # @return:
 # Receives messages from the server and decodes the message
 ##############################################################################################
-def read_message(user, user_private_key, stop):
-    while not stop.is_set() :
+def read_message(user, user_private_key):
+    """
+    read_message function
+    Receives a message decrypts it and show on the console.
+    :param user: the user socket
+    :param user_private_key: user private key to decrypt messages
+    :return:
+    """
+    while True:
         try:
             message = rsa.decrypt(user.recv(1024), user_private_key).decode()
-            print(f"message: {message}")
-            if message == "/leave":
-                stop.set()
+            if "/leave" in message:
+                user.close()
                 break
             else:
                 print(message)
         except:
             print("System error, closing chat.")
-            stop.set()
+            user.close()
             break
-    user.close()
 
 #############################################################################################
 # send_message
@@ -103,23 +120,18 @@ def read_message(user, user_private_key, stop):
 # @return:
 # Receives input message from user to write on the server chat
 ##############################################################################################
-def send_message(user, server_public_key, stop, username=None):
-    while not stop.is_set():
-        try:
-            user_message = input("")
-            if stop.is_set():
-                break
-            message = f"{username}: {user_message}"
-            user.send(rsa.encrypt(message.encode(), server_public_key))
-
-            if "/leave" in user_message:
-                stop.set()
-                break
-
-        except Exception as e:
-            print(f"Erro: {e}")
-            stop.set()
-            break
+def send_message(user, server_public_key, username=None):
+    """
+    send_send_message function
+    Receives input from user and sends to the server1
+    :param user: The user socket
+    :param server_public_key: Server public key
+    :param username: User username
+    :return:
+    """
+    while True:
+        message = f"{username}: {input('')}"
+        user.send(rsa.encrypt(message.encode(), server_public_key))
 
 #############################################################################################
 # login

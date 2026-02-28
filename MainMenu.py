@@ -14,6 +14,12 @@ from UDP_Flood import UDPFlood
 
 
 def main():
+    """
+    Main function
+    Function to display and manage the main menu
+    :param
+    :return
+    """
     while True:
         print(colored(f"=================================================================","green"))
         print(colored(f"==                       Select an option:                     ==", "green"))

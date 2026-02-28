@@ -10,9 +10,6 @@ import pickle
 import socket
 import threading
 import json
-from pydoc import cli
-from sys import exec_prefix
-
 from termcolor import colored
 from Helper_Classes import KeyManager
 import rsa
@@ -38,6 +35,13 @@ public_key_list = []
 # user chat exit.
 ##############################################################################################
 def message_handler (user, private_key):
+    """
+    Message handler function
+    Processes and manages the messages sent by the users
+    :param user: The message sender
+    :param private_key: Server private key
+    :return:
+    """
     while True:
         try:
             message = rsa.decrypt(user.recv(1024), private_key)
@@ -65,6 +69,13 @@ def message_handler (user, private_key):
 # Receives a user and message, and sends the message to all users.
 ##############################################################################################
 def broadcast(message, origin_user):
+    """
+    broadcast function
+    Sends a message to all users except the one who sent it
+    :param message: Message to broadcast
+    :param origin_user: User that sent the message
+    :return:
+    """
     for user  in users_list:
         index = users_list.index(user)
         if user != origin_user:
@@ -78,8 +89,13 @@ def broadcast(message, origin_user):
 # @return:
 # Receives a message and stores it into a log file.
 ##############################################################################################
-
 def save_message(message):
+    """
+    save_message function
+    Receives a message and stores it on a file encripted
+    :param message: the message to save
+    :return:
+    """
     for user in users_list:
         index = users_list.index(user)
         username = username_list[index]
@@ -102,6 +118,12 @@ def save_message(message):
 # Receives a user, and removes it from the chat.
 ##############################################################################################
 def user_logout(user):
+    """
+    user_logout function
+    Disconnects and removes a user from the chat system.
+    :param user: User to remove from the system.
+    :return:
+    """
     index = users_list.index(user)
     users_list.remove(user)
     username = username_list[index]
@@ -119,6 +141,13 @@ def user_logout(user):
 # Receives input from users, starts a new thread for each client.
 ##############################################################################################
 def user_input(public_key, private_key):
+    """
+    user_input function
+    receives the users inputs, both messages and commands, and processes them.
+    :param public_key: Server public key
+    :param private_key: Server private key
+    :return:
+    """
     while True:
         try:
             user, address = server.accept()
@@ -146,6 +175,11 @@ def user_input(public_key, private_key):
 # Retrives machine local IP
 ##############################################################################################
 def get_local_ip():
+    """
+    get_local_ip function
+    Gets the machine IP and returns it.
+    :return: Server IP
+    """
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
     print(local_ip)
@@ -157,6 +191,13 @@ def get_local_ip():
 # This method starts the server, generating keys and starting to listening to the communication port
 ##############################################################################################
 def start_server(host, port):
+    """
+    start_server function
+    Starts the messaging server.
+    :param host:
+    :param port:
+    :return:
+    """
     server.bind((host, port))
     public_key, private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
     server.listen()
@@ -171,6 +212,13 @@ def start_server(host, port):
 # The systems receives the username and password and registers the new user.
 ##############################################################################################
 def register_user(username, password):
+    """
+    register_user function
+    Registers a new user on the server.
+    :param username: User username.
+    :param password: User password
+    :return: True for success ot False for failed atempt.
+    """
 
     if not os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "w") as file:
@@ -198,6 +246,11 @@ def register_user(username, password):
 # Reads the user list file and prints the result.
 ##############################################################################################
 def user_list():
+    """
+    user_list function
+    Gets the list of registered users.
+    :return: List of registered users.
+    """
     if os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "r") as file:
             users_list = json.load(file)
@@ -212,7 +265,12 @@ def user_list():
 ##############################################################################################
 
 def get_encrypted_messages(username):
-
+    """
+    get_encrypted_messages function
+    Reads the messages the user chat history and returns a list of messages.
+    :param username: Requesting user username
+    :return: List of messages.
+    """
     if os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "r") as file:
             users = json.load(file)
@@ -246,6 +304,13 @@ def get_encrypted_messages(username):
 ##############################################################################################
 
 def start_login_server(server_ip, server_port):
+    """
+    start_login_server function
+    Starts the login server and processes user login.
+    :param server_ip: IP where the server receives communications.
+    :param server_port: Network port where the server receives communications.
+    :return:
+    """
     server.bind((server_ip, server_port))
     server.listen()
     print(colored(f"Login server active on-> {server_ip}:{server_port}\n", "green"))
@@ -281,6 +346,13 @@ def start_login_server(server_ip, server_port):
 # The systems receives the username and password and logs the user on the server.
 ##############################################################################################
 def user_login(username, password):
+    """
+    user_login function
+    Processes the user login, checks if user is registered
+    :param username: User username.
+    :param password: User password.
+    :return: True if login, False if fails.
+    """
     if os.path.exists(USERS_REGISTER):
         with open(USERS_REGISTER, "r") as file:
             users = json.load(file)
@@ -305,6 +377,13 @@ def user_login(username, password):
 # Starts the server that allows for users to login.
 ##############################################################################################
 def start_register_server(server_ip, server_port):
+    """
+    start_register_server function
+    Start the server to register users.
+    :param server_ip: IP where the server receives communications.
+    :param server_port: Network port where the server receives communications.
+    :return:
+    """
     server.bind((server_ip, server_port))
     server.listen()
     print(colored(f"Register server active on-> {server_ip}:{server_port}\n", "green"))
@@ -342,11 +421,17 @@ def start_register_server(server_ip, server_port):
 #
 ###############################################################
 
-def start_data_server(host, port):
-
-    server.bind((host, port))
+def start_data_server(server_ip, server_port):
+    """
+    start_data_server function
+    Start server for data requests
+    :param server_ip: IP where the server receives communications.
+    :param server_port: Network port where the server receives communications.
+    :return:
+    """
+    server.bind((server_ip, server_port))
     server.listen()
-    print(f"Stored Data Server listening on {host}:{port}")
+    print(f"Stored Data Server listening on {server_ip}:{server_port}")
     server_public_key, server_private_key =  KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
     get_stored_data(server_public_key, server_private_key)
 
@@ -358,9 +443,15 @@ def start_data_server(host, port):
 ###############################################################
 
 def get_stored_data(public_key, private_key):
+    """
+    get_stored_data function
+    Gets the user stored messages and returns it to the user.
+    :param public_key: Server public key
+    :param private_key: Server private key
+    :return: List of messages, or feedback if something goes wrong.
+    """
     while True:
         try:
-
             user, address = server.accept()
             print(colored(f"[+] Username: {user} is connected from {address}.", "green"))
 
@@ -390,6 +481,12 @@ def get_stored_data(public_key, private_key):
 ###############################################################
 
 def process_messages(username):
+    """
+    process_messages function
+    Opens the message file for the user, processes the data and returns the list of messages to be sent back.
+    :param username: User username.
+    :return: List of messages or null if something goes wrong.
+    """
 
     with open(USERS_REGISTER, "r") as file:
         registered_users = json.load(file)
