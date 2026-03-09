@@ -13,18 +13,20 @@ import json
 from termcolor import colored
 from Helper_Classes import KeyManager
 import rsa
+import contextvars
 
 #system files
 MESSAGE_LOG = "Secure_Messaging/message_log_"
-USERS_REGISTER = "Secure_Messaging/users_register.json"
-PRIVATE_KEYS = "Secure_Messaging/server_secret_keys.pem"
-PUBLIC_KEYS = "Secure_Messaging/server_public_keys.pem"
+USERS_REGISTER = "Secure_Messaging/users_register_"
+PRIVATE_KEYS = "Secure_Messaging/server_secret_keys_"
+PUBLIC_KEYS = "Secure_Messaging/server_public_keys_"
 
 # non constant variables
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 users_list = []
 username_list = []
 public_key_list = []
+server_name = contextvars.ContextVar('server_name', default="")
 
 #############################################################################################
 # message_handler
@@ -100,7 +102,7 @@ def save_message(message):
         index = users_list.index(user)
         username = username_list[index]
         public_key = public_key_list[index]
-        file_path = MESSAGE_LOG+username+".json"
+        file_path = MESSAGE_LOG+username+server_name.get()+".json"
         if not os.path.exists(file_path):
             with open(file_path, "w") as file:
                 json.dump({"messages":[rsa.encrypt(message, public_key).hex()]}, file)
@@ -190,7 +192,7 @@ def get_local_ip():
 # @return:
 # This method starts the server, generating keys and starting to listening to the communication port
 ##############################################################################################
-def start_server(host, port):
+def start_server(host, port, servername):
     """
     start_server function
     Starts the messaging server.
@@ -198,8 +200,12 @@ def start_server(host, port):
     :param port:
     :return:
     """
+
+    server_name.set(servername)
+    private_keys_local = PRIVATE_KEYS + server_name.get()  + ".pem"
+    public_keys_local = PUBLIC_KEYS + server_name.get()  + ".pem"
     server.bind((host, port))
-    public_key, private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
+    public_key, private_key = KeyManager.get_rsa_keys(public_keys_local, private_keys_local)
     server.listen()
     print(colored(f"Server active on-> {host}:{port}\n", "green"))
     user_input(public_key, private_key)
@@ -219,12 +225,12 @@ def register_user(username, password):
     :param password: User password
     :return: True for success ot False for failed atempt.
     """
-
-    if not os.path.exists(USERS_REGISTER):
-        with open(USERS_REGISTER, "w") as file:
+    user_register_file = USERS_REGISTER + server_name.get()  + ".json"
+    if not os.path.exists(user_register_file):
+        with open(user_register_file, "w") as file:
             json.dump({}, file)
 
-    with open(USERS_REGISTER, "r") as file:
+    with open(user_register_file, "r") as file:
         users_file = json.load(file)
 
     if username in users_file:
@@ -234,7 +240,7 @@ def register_user(username, password):
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     users_file[username] = hashed_password
 
-    with open(USERS_REGISTER, "w") as file:
+    with open(user_register_file, "w") as file:
         json.dump(users_file, file)
     print(colored(f"User {username} registered.", "green"))
     return True
@@ -251,8 +257,9 @@ def user_list():
     Gets the list of registered users.
     :return: List of registered users.
     """
-    if os.path.exists(USERS_REGISTER):
-        with open(USERS_REGISTER, "r") as file:
+    user_register_file =  USERS_REGISTER+server_name.get() +".json"
+    if os.path.exists(user_register_file):
+        with open(user_register_file, "r") as file:
             users_list = json.load(file)
             for user in users_list:
                 print(colored(f"User: {user}", "green"))
@@ -271,8 +278,9 @@ def get_encrypted_messages(username):
     :param username: Requesting user username
     :return: List of messages.
     """
-    if os.path.exists(USERS_REGISTER):
-        with open(USERS_REGISTER, "r") as file:
+    user_register_file = USERS_REGISTER + server_name.get()  + ".json"
+    if os.path.exists(user_register_file):
+        with open(user_register_file, "r") as file:
             users = json.load(file)
     else:
         print("No users register detected.")
@@ -282,8 +290,8 @@ def get_encrypted_messages(username):
         print(colored(f"User {username} not registered.", "red"))
         return
 
-    if os.path.exists(MESSAGE_LOG+username+".json"):
-        with open(MESSAGE_LOG+username+".json", "r") as file:
+    if os.path.exists(MESSAGE_LOG+username+server_name.get()+".json"):
+        with open(MESSAGE_LOG+username+server_name.get()+".json", "r") as file:
             messages = json.load(file)["messages"]
     else:
         print(colored(f"No messages registered.", "red"))
@@ -303,7 +311,7 @@ def get_encrypted_messages(username):
 # Starts the server that allows for users to login.
 ##############################################################################################
 
-def start_login_server(server_ip, server_port):
+def start_login_server(server_ip, server_port, servername):
     """
     start_login_server function
     Starts the login server and processes user login.
@@ -311,10 +319,13 @@ def start_login_server(server_ip, server_port):
     :param server_port: Network port where the server receives communications.
     :return:
     """
+    server_name.set(servername)
+    private_keys_local = PRIVATE_KEYS + server_name.get()  + ".pem"
+    public_keys_local = PUBLIC_KEYS + server_name.get()  + ".pem"
     server.bind((server_ip, server_port))
     server.listen()
     print(colored(f"Login server active on-> {server_ip}:{server_port}\n", "green"))
-    server_public_key, server_private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
+    server_public_key, server_private_key = KeyManager.get_rsa_keys(public_keys_local, private_keys_local)
     while True:
         try:
             user, address = server.accept()
@@ -353,8 +364,9 @@ def user_login(username, password):
     :param password: User password.
     :return: True if login, False if fails.
     """
-    if os.path.exists(USERS_REGISTER):
-        with open(USERS_REGISTER, "r") as file:
+    user_register_file = USERS_REGISTER + server_name.get()  + ".json"
+    if os.path.exists(user_register_file):
+        with open(user_register_file, "r") as file:
             users = json.load(file)
     else:
         print("Login data error.")
@@ -376,7 +388,7 @@ def user_login(username, password):
 # @return:
 # Starts the server that allows for users to login.
 ##############################################################################################
-def start_register_server(server_ip, server_port):
+def start_register_server(server_ip, server_port, servername):
     """
     start_register_server function
     Start the server to register users.
@@ -384,10 +396,13 @@ def start_register_server(server_ip, server_port):
     :param server_port: Network port where the server receives communications.
     :return:
     """
+    server_name.set(servername)
+    private_keys_local = PRIVATE_KEYS + server_name.get() + ".pem"
     server.bind((server_ip, server_port))
     server.listen()
+    public_keys_local = PUBLIC_KEYS + server_name.get()  + ".pem"
     print(colored(f"Register server active on-> {server_ip}:{server_port}\n", "green"))
-    server_public_key, server_private_key = KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
+    server_public_key, server_private_key = KeyManager.get_rsa_keys(public_keys_local, private_keys_local)
     while True:
         try:
             user, address = server.accept()
@@ -398,13 +413,15 @@ def start_register_server(server_ip, server_port):
             message = rsa.decrypt(user.recv(1024), server_private_key).decode()
 
             if "/register" in message:
-                reg, username, password = message.split(" ")
+                reg, username, password, server_name_in= message.split(" ")
                 print(f"register detected and {reg} in first place")
-                if "/register" and register_user(username, password):
-                    user.send(rsa.encrypt("SUCCESS".encode(), user_public_key))
-
+                if  server_name_in == server_name.get():
+                    if "/register" and register_user(username, password):
+                        user.send(rsa.encrypt("SUCCESS".encode(), user_public_key))
+                    else:
+                        user.send(rsa.encrypt("Register Failed!".encode(), user_public_key))
                 else:
-                    user.send(rsa.encrypt("Register Failed!".encode(), user_public_key))
+                    user.send(rsa.encrypt(" NoName".encode(), user_public_key))
 
             else:
                 user.send(rsa.encrypt("Invalid Command!".encode(), user_public_key))
@@ -421,7 +438,7 @@ def start_register_server(server_ip, server_port):
 #
 ###############################################################
 
-def start_data_server(server_ip, server_port):
+def start_data_server(server_ip, server_port, servername):
     """
     start_data_server function
     Start server for data requests
@@ -429,10 +446,13 @@ def start_data_server(server_ip, server_port):
     :param server_port: Network port where the server receives communications.
     :return:
     """
+    server_name.set(servername)
+    private_keys_local= PRIVATE_KEYS + server_name.get()  + ".pem"
+    public_keys_local = PUBLIC_KEYS + server_name.get()  + ".pem"
     server.bind((server_ip, server_port))
     server.listen()
     print(f"Stored Data Server listening on {server_ip}:{server_port}")
-    server_public_key, server_private_key =  KeyManager.get_rsa_keys(PUBLIC_KEYS, PRIVATE_KEYS)
+    server_public_key, server_private_key =  KeyManager.get_rsa_keys(public_keys_local, private_keys_local)
     get_stored_data(server_public_key, server_private_key)
 
 
@@ -450,6 +470,7 @@ def get_stored_data(public_key, private_key):
     :param private_key: Server private key
     :return: List of messages, or feedback if something goes wrong.
     """
+
     while True:
         try:
             user, address = server.accept()
@@ -487,16 +508,16 @@ def process_messages(username):
     :param username: User username.
     :return: List of messages or null if something goes wrong.
     """
-
-    with open(USERS_REGISTER, "r") as file:
+    user_register_file = USERS_REGISTER + server_name.get()  + ".json"
+    with open(user_register_file, "r") as file:
         registered_users = json.load(file)
 
     if username not in registered_users:
         print(colored("Username not found.", "red"))
         return
 
-    if os.path.exists(MESSAGE_LOG+username+".json"):
-        with open(MESSAGE_LOG+username+".json", "r") as message_file:
+    if os.path.exists(MESSAGE_LOG+username+server_name.get()+".json"):
+        with open(MESSAGE_LOG+username+server_name.get()+".json", "r") as message_file:
             messages = json.load(message_file)["messages"]
             message_history = []
             for message in messages:

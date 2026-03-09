@@ -21,7 +21,7 @@ def main():
     :return
     """
     while True:
-        print(colored(f"=================================================================","green"))
+        print(colored(f"\n=================================================================","green"))
         print(colored(f"==                       Select an option:                     ==", "green"))
         print(colored(f"=================================================================", "green"))
         print(colored(f"1-Port Scan", "green"))
@@ -71,21 +71,27 @@ def main():
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert port for server communication, or 0(zero) to exit.', "green"))
             port = ArgumentMaker.insert_port()
-            server.start_server(IP, int(port))
+            print(colored(f'Insert server name.', "green"))
+            servername = input("Name: ")
+            server.start_server(IP, int(port), servername)
             ## Login Server
         elif option == "6":
             print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert server port, or 0(zero) to exit.', "green"))
             port = ArgumentMaker.insert_port()
-            server.start_login_server(IP, int(port))
+            print(colored(f'Insert server name.', "green"))
+            servername = input("Name: ")
+            server.start_login_server(IP, int(port), servername)
             ## Register Server
         elif option == "7":
             print(colored(f'Insert IP address for server communication, or 0(zero) to exit.', "green"))
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert port for server communication, or 0(zero) to exit.', "green"))
             port = ArgumentMaker.insert_port()
-            server.start_register_server(IP, int(port))
+            print(colored(f'Insert server name.', "green"))
+            servername = input("Name: ")
+            server.start_register_server(IP, int(port), servername)
 
             ## Data Server
         elif option == "8":
@@ -93,7 +99,9 @@ def main():
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert port for server communication, or 0(zero) to exit.', "green"))
             port = ArgumentMaker.insert_port()
-            server.start_data_server( IP, int(port))
+            print(colored(f'Insert server name.', "green"))
+            servername = input("Name: ")
+            server.start_data_server( IP, int(port), servername)
 
         elif option == "9":
             print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
@@ -102,7 +110,9 @@ def main():
             port = ArgumentMaker.insert_port()
             username = input("Enter username: ")
             password = input("Enter password: ")
-            user.register(IP, int(port), username, password)
+            print(colored(f'Insert server name.', "green"))
+            servername = input("Name: ")
+            user.register(IP, int(port), username, password, servername)
             ## Login User
         elif option == "10":
             print(colored("Login to messaging server", "blue"))
@@ -110,14 +120,17 @@ def main():
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert login server port.', "green"))
             port = ArgumentMaker.insert_port()
+            print(colored(f'Insert server name.', "green"))
+            servername = input("Name: ")
             username = input("Enter username: ")
             password = input("Enter password: ")
-            if user.login(IP, int(port), username, password) == True:
+
+            if user.login(IP, int(port), username, password, servername) == True:
                 print(colored(f'Insert chat server IP address.', "green"))
                 chat_server_IP = ArgumentMaker.insert_IP()
                 print(colored(f'Insert chat server port.', "green"))
                 chat_server_port = ArgumentMaker.insert_port()
-                chat_user = user.user_begin(chat_server_IP, int(chat_server_port), username)
+                chat_user = user.user_begin(chat_server_IP, int(chat_server_port), username, servername)
                 if chat_user:
                     print(colored(f'Message server active, you can chat now.', "blue"))
                     while chat_user:
@@ -132,10 +145,11 @@ def main():
             IP = ArgumentMaker.insert_IP()
             print(colored(f'Insert login server port.', "green"))
             port = ArgumentMaker.insert_port()
-
+            print(colored(f'Insert server name.', "green"))
+            servername = input("Name: ")
             username = input("Enter username: ")
             password = input("Enter password: ")
-            if user.login(IP, int(port), username, password) == True:
+            if user.login(IP, int(port), username, password, servername) == True:
                 print(colored(f'Insert Data Server IP', "green"))
                 data_server_IP = ArgumentMaker.insert_IP()
                 print(colored(f'Insert Data Server port.', "green"))

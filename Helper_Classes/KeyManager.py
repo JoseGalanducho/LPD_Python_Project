@@ -50,7 +50,7 @@ def get_rsa_keys(public_keys_file, private_keys_file):
 # @return:
 # Generates a pair of rsa keys or reads the keys if they already exists
 ##############################################################################################
-def get_user_keys(username):
+def get_user_keys(username, servername):
     """
     get_user_keys function
     Reads user rsa keys if available, otherwise generates rsa keys.
@@ -58,19 +58,21 @@ def get_user_keys(username):
     :return:
     """
     user_public_key, user_private_key  = rsa.newkeys(1024)
+    public_file_path = USER_PUBLIC_KEYS + username + servername + ".pem"
+    private_file_path = USER_PRIVATE_KEYS + username + servername + ".pem"
 
-    if os.path.exists(USER_PUBLIC_KEYS + username + ".pem"):
-        with open(USER_PUBLIC_KEYS + username + ".pem", "rb") as file:
+    if os.path.exists(public_file_path):
+        with open(public_file_path, "rb") as file:
             user_public_key = rsa.PublicKey.load_pkcs1(file.read())
     else:
-        with open(USER_PUBLIC_KEYS + username + ".pem", "wb") as file:
+        with open(public_file_path, "wb") as file:
             file.write(user_public_key.save_pkcs1("PEM"))
 
-    if os.path.exists(USER_PRIVATE_KEYS + username + ".pem"):
-        with open(USER_PRIVATE_KEYS + username + ".pem", "rb") as file:
+    if os.path.exists(private_file_path):
+        with open(private_file_path, "rb") as file:
             user_private_key = rsa.PrivateKey.load_pkcs1(file.read())
     else:
-        with open(USER_PRIVATE_KEYS + username + ".pem", "wb") as file:
+        with open(private_file_path, "wb") as file:
             file.write(user_private_key.save_pkcs1("PEM"))
 
-    return user_public_key, user_private_key
+    return user_public_key, user_private_key, public_file_path, private_file_path

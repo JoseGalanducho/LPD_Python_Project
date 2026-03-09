@@ -29,7 +29,6 @@ def port_scan(IPs=[""], ports=[""], view="", print_file="" ):
     index = 0
     print(colored("Port scanner running...","green"))
     for ip in IPs:
-
         for port in ports:
             if fase == 4:
                 fase = 1

@@ -11,9 +11,9 @@ import threading
 import rsa
 from termcolor import colored
 from Helper_Classes import KeyManager
-
+import contextvars
 #Constants
-
+server_name = contextvars.ContextVar('server_name', default="")
 
 #############################################################################################
 # user_begin
@@ -24,7 +24,7 @@ from Helper_Classes import KeyManager
 # Receives user data and starts the user
 # #connection and communication with the server
 ##############################################################################################
-def user_begin(server_ip, server_port, username):
+def user_begin(server_ip, server_port, username, servername):
     """
     user_begin function
     Starts the user connection to the server.
@@ -33,8 +33,9 @@ def user_begin(server_ip, server_port, username):
     :param username: User username.
     :return: returns the user, or null if something goes wrong.
     """
+    server_name.set(servername)
     print(colored(f"User connecting to {server_ip}:{server_port} with username {username}", "green"))
-    public_key, private_key = KeyManager.get_user_keys(username)
+    public_key, private_key, public_file_path, private_file_path = KeyManager.get_user_keys(username, server_name.get())
 
     user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -43,7 +44,6 @@ def user_begin(server_ip, server_port, username):
     except:
         print("Connection error ")
         return
-
     print(colored(f"{username} connected to server", "green"))
     print(colored(f"type '/leave' to leave the chat.","red"))
 
@@ -78,7 +78,7 @@ def decode_messages(username, messages):
     :param messages: list of messages sent by the user
     :return: list of decoded messages.
     """
-    public_key, private_key =  KeyManager.get_user_keys(username)
+    public_key, private_key, public_file_path, private_file_path =  KeyManager.get_user_keys(username, server_name.get())
     decoded_messages = []
     for message in messages:
         decoded_messages.append(rsa.decrypt(message, private_key).decode())
@@ -143,7 +143,8 @@ def send_message(user, server_public_key, username=None):
 # Return the result of the login, either True for success or False for failed login
 ##############################################################################################
 
-def login(server_ip, server_port, username, password):
+def login(server_ip, server_port, username, password, servername):
+    server_name.set(servername)
     user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         user.connect((server_ip, server_port))
@@ -151,7 +152,7 @@ def login(server_ip, server_port, username, password):
         print("Server not found")
         return False
 
-    user_public_key, user_private_key =  KeyManager.get_user_keys(username)
+    user_public_key, user_private_key, public_file_path, private_file_path =  KeyManager.get_user_keys(username, server_name.get())
 
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
@@ -176,19 +177,37 @@ def login(server_ip, server_port, username, password):
 # @return:
 # Return the result of the register, either True for success or False for failed login
 ##############################################################################################
-def register(server_ip, server_port, username, password):
-
+def register(server_ip, server_port, username, password, servername):
+    """
+    register function
+    Sends register request to the server, and waits for the return
+    :param server_ip: the server ip to connect
+    :param server_port: server connection port
+    :param username: user username
+    :param password: user password
+    :param servername: server name
+    :return:
+    """
+    server_name.set(servername)
     user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     user.connect((server_ip, server_port))
-    user_public_key, user_private_key =  KeyManager.get_user_keys(username)
+    user_public_key, user_private_key, public_file_path, private_file_path =  KeyManager.get_user_keys(username, server_name.get())
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
-    user.send(rsa.encrypt(f"/register {username} {password}".encode(), server_public_key))
+    user.send(rsa.encrypt(f"/register {username} {password} {servername}".encode(), server_public_key))
 
     response = rsa.decrypt(user.recv(1024), user_private_key).decode()
 
     if response == "SUCCESS":
         print("User registered!")
+    elif response == "NoName":
+        print("Server name not correct!")
+        try:
+            os.remove(public_file_path)
+            os.remove(private_file_path)
+        except:
+            print(colored("Error, keys files not cleaned", "red"))
+
     else:
         print("Registration Error!")
 
@@ -201,11 +220,18 @@ def register(server_ip, server_port, username, password):
 # Prints the historic of messages for the user
 ##############################################################################################
 def get_message_history(server_ip, server_port, username):
+    """
+    get_message_history function
+    Requests the messaging history from the server.
+    :param server_ip: server ip to connect
+    :param server_port: server port to connect
+    :param username: user username
+    :return: The messaging historic, no messages or error if something fails.
+    """
 
     user= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     user.connect((server_ip, server_port))
-
-    user_public_key, user_private_key =  KeyManager.get_user_keys(username)
+    user_public_key, user_private_key, private_file_path, public_file_path =  KeyManager.get_user_keys(username, server_name.get())
 
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
@@ -242,7 +268,7 @@ def get_users(server_ip, server_port, username):
     user= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     user.connect((server_ip, server_port))
 
-    user_public_key, user_private_key =  KeyManager.get_user_keys(username)
+    user_public_key, user_private_key, public_file_path, private_file_path =  KeyManager.get_user_keys(username, server_name.get())
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
 
