@@ -11,6 +11,16 @@ from Helper_Classes.ArgumentMaker import progress_print
 
 
 def UDPFlood(IP, port, pckt_size=1024, pckt_quantity=20):
+    '''
+    UDP flood function.
+    Receives the server IP and port, and receives a package quantity and size, then sends
+    the amount of packages set with the size set to obstruct the server communication.
+    :param IP: Server IP
+    :param port: Server communication port.
+    :param pckt_size: Packet size.
+    :param pckt_quantity: Packet quantity.
+    :return: Null
+    '''
     print(colored("---------- UDP Flood Started----------","green"))
     print(colored(f"UDP flood, target ->  {IP}:{port}","green"))
     sckt = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

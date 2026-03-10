@@ -17,6 +17,13 @@ import geoip2.database
 ###################################################################
 
 def log_analyzer(file, service, output):
+    '''
+    Log analyzer function.
+    :param file: Path for the file with the logs to read.
+    :param service: Service to check SSH or HTTP
+    :param output: Type of output, Console, SSV or PDF file.
+    :return: Null
+    '''
     print(colored("---------- Log Analyzer ----------","green"))
     results = []
 
@@ -106,6 +113,12 @@ def log_analyzer(file, service, output):
 # return -> city name, or Unknown
 ###################################################################
 def get_city_from_ip(ip):
+    '''
+    Get City From IP function
+    Receives and IP address and returns the city where it originated.
+    :param ip: User IP address.
+    :return: Returns the city name or Unknown if the city cannot be found.
+    '''
 
     try:
         with geoip2.database.Reader('GeoLite2-City.mmdb') as reader:
@@ -119,6 +132,12 @@ def get_city_from_ip(ip):
 # return -> city name, or Unknown
 ###################################################################
 def get_country_from_ip(ip):
+    '''
+    Get Country From IP function.
+    Receives an IP address and returns the country where it originated.
+    :param ip: User IP address.
+    :return: Returns the country name or unknown if the country cannot be found.
+    '''
     try:
         with geoip2.database.Reader('GeoLite2-City.mmdb') as reader:
             country_result = reader.city(ip)
@@ -133,6 +152,12 @@ def get_country_from_ip(ip):
 ###################################################################
 
 def get_datetime(line):
+    '''
+    Get Date Time function.
+    Receives a line of text from the log file and returns the date and time.
+    :param line: Line of text.
+    :return: Date and Time from the text.
+    '''
     datetime = re.search(r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\b', line)
     return datetime
 
@@ -143,6 +168,13 @@ def get_datetime(line):
 ###################################################################
 
 def save_file_csv(results, report):
+    '''
+    Save File to CSV function
+    Receives the result from the log file analysis and saves it in a csv file.
+    :param results: List of results from the log file analysis.
+    :param report: Service selected HTTP or SSH
+    :return: Null
+    '''
     now = datetime.now()
     fase = 1
     index = 0
@@ -170,6 +202,13 @@ def save_file_csv(results, report):
 ###################################################################
 
 def save_file_pdf(results, report):
+    '''
+    Save File to PDF function
+    Receives the result from the log file analysis and saves it in a PDF file.
+    :param results: List of results from the log file analysis.
+    :param report: Service selected HTTP or SSH
+    :return: Null
+    '''
     LINE_WIDTH= 80
     fase = 1
     index = 0

@@ -3,14 +3,17 @@
 # @Número de Aluno: 13651
 # main, this function starts the program, and shows the main menu and it's options
 #############################################################################################
+from scapy.sendrecv import send
+
 from Log_Analyzer import LogAnalyzer
 from SYN_Flood import SYNFlood
 from Helper_Classes import ArgumentMaker
-from Port_Scanner import  portscan
-from Secure_Messaging import server
-from Secure_Messaging import user
+from Port_Scanner import  Portscan
+from Secure_Messaging import Server
+from Secure_Messaging import User
 from termcolor import colored
 from UDP_Flood import UDPFlood
+from Port_Knocking import PortKnocking
 
 
 def main():
@@ -35,6 +38,7 @@ def main():
         print(colored(f"9-Register User", "green"))
         print(colored(f"10-Connect User to Secure Messaging", "green"))
         print(colored(f"11-Get Stored Messages", "green"))
+        print(colored(f"12-Port Knocking", "green"))
         print(colored(f"q-Close Program", "red"))
         option = input(colored(f"->", "green"))
 
@@ -155,7 +159,24 @@ def main():
                 print(colored(f'Insert Data Server port.', "green"))
                 data_server_port = ArgumentMaker.insert_port()
                 user.get_message_history(data_server_IP, int(data_server_port), username)
-
+        elif option == "12":
+            print(colored(f'Port Knocking', 'blue'))
+            print(colored(f'Insert login server IP address.', "green"))
+            IP = ArgumentMaker.insert_IP()
+            print(colored("f'Insert port sequence (Ex: 7000, 8000, 9000)"))
+            ports = input("Enter ports: ")
+            if ArgumentMaker.port_list(ports) != True:
+                print(colored(f'Invalid port list.', "red"))
+                break
+            ssh = ''
+            while ssh != 'S' and ssh != 'C':
+                print(colored(f'To open SSH port insert (S) to close SSH port insert (C)', "green"))
+                ssh = input(colored(f'SSH:', "blue"))
+                print(f'ssh -> {ssh}')
+                if ssh != 'S' and ssh != 'C':
+                    print(colored(f'Invalid ssh option.', "red"))
+            print(colored(f'Sending sequence...',"blue"))
+            PortKnocking.port_knocking(IP, ports, ssh)
         elif option == "q":
             print(colored(f"Closing Program\n", "red"))
             break

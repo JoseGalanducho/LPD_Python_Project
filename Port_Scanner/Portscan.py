@@ -1,14 +1,14 @@
-import socket
-from termcolor import colored
-import MainMenu
-from Helper_Classes.ArgumentMaker import progress_print
-
-
 #################################################################################
 # @Author: José Manuel Batista Galanducho
 # @Número de Aluno: 13651
 # PortScan this class executes ports scans and saves or prints the result
 #################################################################################
+
+import socket
+from termcolor import colored
+import MainMenu
+from Helper_Classes.ArgumentMaker import progress_print
+
 
 ####################################################################
 # Port Scan Function
@@ -16,6 +16,16 @@ from Helper_Classes.ArgumentMaker import progress_print
 #IPs -> IP list |  ports -> port list | view -> 0 or 1 (console or GUI) | print_file = file path to print results to a file
 ###################################################################
 def port_scan(IPs=[""], ports=[""], view="", print_file="" ):
+    '''
+    Port Scan function
+    Receives a list of IPs and ports, then, for each IP it tests all the ports on the list,
+    returns the results on the console.
+    :param IPs: Target IP or list of IPs
+    :param ports: Target port or list of ports
+    :param view: (Not Implemented)
+    :param print_file: (Not Implemented)
+    :return:
+    '''
 
     report = []
     fase = 1

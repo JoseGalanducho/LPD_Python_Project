@@ -15,6 +15,12 @@
 from termcolor import colored
 
 def ips_and_ports():
+    '''
+    Ips and Ports function
+    Ask the users to insert an IP or list of IPs and a port, or list of ports.
+    Prepares the inserted values and returns a list of IPs and a list of ports.
+    :return: IP list and Port list.
+    '''
     IP_list = []
     gate_list = []
     gate="1"
@@ -55,6 +61,11 @@ def ips_and_ports():
 # if values are correct, it calls for the port scan with inserted values.
 ##############################################################################################
 def insert_IP():
+    '''
+    Insert IP
+    Asks the user to insert an IP and verifies if it is valid, if the user inserts 0 it stops.
+    :return: IP or null if user stops the function
+    '''
     valid_IP = "1"
     # --------------------Get IP List ------------------------------------------
     while valid_IP == "1":
@@ -74,6 +85,10 @@ def insert_IP():
 # This method reads the user input fot the IP address
 ##############################################################################################
 def insert_port():
+    '''
+    Asks the user to insert a port and verifies if it is valid, if the user inserts 0 it stops.
+    :return:  Communication port or null if user stops the function
+    '''
     valid_port = "1"
     # --------------------Get port List ------------------------------------------
     while valid_port == "1":
@@ -93,6 +108,12 @@ def insert_port():
 # Checks if IP inserted is valid.
 #############################################################################################
 def IP_check(IP):
+    '''
+    IP check function
+    Receives and IP and verifies if it is valid.
+    :param IP: String containing an IP
+    :return: True if valid IP, false otherwise
+    '''
     valid = True
     IP_segments = IP.split(".")
     IP_segments
@@ -111,6 +132,12 @@ def IP_check(IP):
 # Checks if network port is correct
 #############################################################################################
 def port_check(port):
+    '''
+    Port Check function
+    Receives and port and verifies if it is valid.
+    :param port: String with a port number.
+    :return: True if valid, false otherwise.
+    '''
     valid = True
     try:
         if int(port) > 0 and int(port) <= 65535:
@@ -126,6 +153,12 @@ def port_check(port):
 #############################################################################################
 
 def check_port_list(port_list):
+    '''
+    Check port list function
+    Receives a starting port and ending port, and creates a list with all the ports between them.
+    :param port_list: Initial and final port separated by "-".
+    :return: A list of ports or 0 if the list is not valid.
+    '''
     valid = 1
     port_list_compiled=[]
     if "-" in port_list:
@@ -153,6 +186,12 @@ def check_port_list(port_list):
 #############################################################################################
 
 def progress_print(fase):
+    '''
+    Progress Print function
+    This function creates a visual effect to give the user some feedback.
+    :param fase: Input to select the simbol to print.
+    :return:
+    '''
     _ = fase
     simbol = "--"
     if fase < 0:
@@ -170,3 +209,24 @@ def progress_print(fase):
         simbol="--"
 
     return simbol
+
+#############################################################################################
+# port_list
+# @args: port_sequence
+# @return:
+# Receives a list of ports and tests if it is a valid list.
+#############################################################################################
+
+def port_list(port_sequence):
+    '''
+    Port List Function
+    Receives a list of ports separated by spaces, and creates a list for the port knocking sequence, and checks if all the ports are
+    valid.
+    :param port_sequence: List of ports
+    :return:
+    '''
+    port_array = port_sequence.split(" ")
+    for port in port_array:
+        if port_check(port) != True:
+            return False
+    return True

@@ -14,6 +14,15 @@ import random
 #destination_ip -> target ip |  destination_port -> target port | pckt_quantity -> amount of packages to send
 ###################################################################
 def SYN_Flood(destination_ip, destination_port, pckt_quantity = 20):
+    '''
+    SYN flood function.
+    Receives a destination IP, port and packet quantity, and sends packets to a remote server until the number
+    of packets set is sent, it generates random IPs and random ports to create confusion on the server.
+    :param destination_ip: The server communication IP.
+    :param destination_port: The server communication port.
+    :param pckt_quantity: Quantity of packets to send.
+    :return:
+    '''
 
     for pckt in range(pckt_quantity):
         try:

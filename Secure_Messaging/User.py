@@ -264,6 +264,15 @@ def get_message_history(server_ip, server_port, username):
 # Prints the list of users in the server
 ##############################################################################################
 def get_users(server_ip, server_port, username):
+    '''
+    Get Users function.
+    Receives the username, server IP, server port and server name and
+    prints the list of registered users on the server.
+    :param server_ip: The server ip to connect.
+    :param server_port: The server communication port.
+    :param username: The user username.
+    :return: Null
+    '''
 
     user= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     user.connect((server_ip, server_port))
