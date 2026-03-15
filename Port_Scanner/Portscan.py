@@ -9,14 +9,13 @@ from termcolor import colored
 import MainMenu
 from Helper_Classes.ArgumentMaker import progress_print
 
-
 ####################################################################
 # Port Scan Function
 # @args: IPs, ports, view, print_file
 #IPs -> IP list |  ports -> port list | view -> 0 or 1 (console or GUI) | print_file = file path to print results to a file
 ###################################################################
 def port_scan(IPs=[""], ports=[""], view="", print_file="" ):
-    '''
+    """
     Port Scan function
     Receives a list of IPs and ports, then, for each IP it tests all the ports on the list,
     returns the results on the console.
@@ -25,7 +24,7 @@ def port_scan(IPs=[""], ports=[""], view="", print_file="" ):
     :param view: (Not Implemented)
     :param print_file: (Not Implemented)
     :return:
-    '''
+    """
 
     report = []
     fase = 1

@@ -45,7 +45,7 @@ def main():
         ##Portscan
         if option == "1":
             IPs, ports = ArgumentMaker.ips_and_ports()
-            portscan.port_scan(IPs, ports, 0, 0)
+            Portscan.port_scan(IPs, ports, 0, 0)
         ## UDP Flood
         elif option == "2":
             IPs =  ArgumentMaker.insert_IP()
@@ -77,7 +77,7 @@ def main():
             port = ArgumentMaker.insert_port()
             print(colored(f'Insert server name.', "green"))
             servername = input("Name: ")
-            server.start_server(IP, int(port), servername)
+            Server.start_server(IP, int(port), servername)
             ## Login Server
         elif option == "6":
             print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
@@ -86,7 +86,7 @@ def main():
             port = ArgumentMaker.insert_port()
             print(colored(f'Insert server name.', "green"))
             servername = input("Name: ")
-            server.start_login_server(IP, int(port), servername)
+            Server.start_login_server(IP, int(port), servername)
             ## Register Server
         elif option == "7":
             print(colored(f'Insert IP address for server communication, or 0(zero) to exit.', "green"))
@@ -95,7 +95,7 @@ def main():
             port = ArgumentMaker.insert_port()
             print(colored(f'Insert server name.', "green"))
             servername = input("Name: ")
-            server.start_register_server(IP, int(port), servername)
+            Server.start_register_server(IP, int(port), servername)
 
             ## Data Server
         elif option == "8":
@@ -105,7 +105,7 @@ def main():
             port = ArgumentMaker.insert_port()
             print(colored(f'Insert server name.', "green"))
             servername = input("Name: ")
-            server.start_data_server( IP, int(port), servername)
+            Server.start_data_server( IP, int(port), servername)
 
         elif option == "9":
             print(colored(f'Insert server IP address, or 0(zero) to exit.', "green"))
@@ -116,7 +116,7 @@ def main():
             password = input("Enter password: ")
             print(colored(f'Insert server name.', "green"))
             servername = input("Name: ")
-            user.register(IP, int(port), username, password, servername)
+            User.register(IP, int(port), username, password, servername)
             ## Login User
         elif option == "10":
             print(colored("Login to messaging server", "blue"))
@@ -129,12 +129,12 @@ def main():
             username = input("Enter username: ")
             password = input("Enter password: ")
 
-            if user.login(IP, int(port), username, password, servername) == True:
+            if User.login(IP, int(port), username, password, servername) == True:
                 print(colored(f'Insert chat server IP address.', "green"))
                 chat_server_IP = ArgumentMaker.insert_IP()
                 print(colored(f'Insert chat server port.', "green"))
                 chat_server_port = ArgumentMaker.insert_port()
-                chat_user = user.user_begin(chat_server_IP, int(chat_server_port), username, servername)
+                chat_user = User.user_begin(chat_server_IP, int(chat_server_port), username, servername)
                 if chat_user:
                     print(colored(f'Message server active, you can chat now.', "blue"))
                     while chat_user:
@@ -153,17 +153,17 @@ def main():
             servername = input("Name: ")
             username = input("Enter username: ")
             password = input("Enter password: ")
-            if user.login(IP, int(port), username, password, servername) == True:
+            if User.login(IP, int(port), username, password, servername) == True:
                 print(colored(f'Insert Data Server IP', "green"))
                 data_server_IP = ArgumentMaker.insert_IP()
                 print(colored(f'Insert Data Server port.', "green"))
                 data_server_port = ArgumentMaker.insert_port()
-                user.get_message_history(data_server_IP, int(data_server_port), username)
+                User.get_message_history(data_server_IP, int(data_server_port), username)
         elif option == "12":
             print(colored(f'Port Knocking', 'blue'))
-            print(colored(f'Insert login server IP address.', "green"))
+            print(colored(f'Insert target IP address.', "green"))
             IP = ArgumentMaker.insert_IP()
-            print(colored("f'Insert port sequence (Ex: 7000, 8000, 9000)"))
+            print(colored("f'Insert port sequence (Ex: 7000 8000 9000)"))
             ports = input("Enter ports: ")
             if ArgumentMaker.port_list(ports) != True:
                 print(colored(f'Invalid port list.', "red"))

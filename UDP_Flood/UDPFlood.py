@@ -9,7 +9,6 @@ import random
 from termcolor import colored
 from Helper_Classes.ArgumentMaker import progress_print
 
-
 def UDPFlood(IP, port, pckt_size=1024, pckt_quantity=20):
     '''
     UDP flood function.

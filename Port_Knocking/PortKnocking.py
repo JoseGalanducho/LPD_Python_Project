@@ -16,7 +16,7 @@ def port_knocking(remote_ip, sequence, open_ssh):
     :param remote_ip: IP address of the target server (default: 192.168.1.223).
     :param open_ssh: Whether to open or close the SSH port (default: True).
     """
-    sequence = sequence.split(",")
+    sequence = sequence.split(" ")
     if open_ssh == "C":
         sequence.reverse()
 
