@@ -36,7 +36,7 @@ server_name = contextvars.ContextVar('server_name', default="")
 # Receives a user, and the server private key. Handles the message decryption, transmission and
 # user chat exit.
 ##############################################################################################
-def message_handler (user, private_key):
+def message_handler (user, private_key, servername):
     """
     Message handler function
     Processes and manages the messages sent by the users
@@ -44,23 +44,24 @@ def message_handler (user, private_key):
     :param private_key: Server private key
     :return:
     """
+    server_name.set(servername)
     while True:
         try:
             message = rsa.decrypt(user.recv(1024), private_key)
             print(f"message: {message}")
             if not message:
-                user_logout(user)
+                user_logout(user, server_name.get())
 
             if '/leave' in message.decode():
                 user_index = users_list.index(user)
                 user.send(rsa.encrypt('/leave command inserted.'.encode(), public_key_list[user_index]))
-                user_logout(user)
+                user_logout(user, server_name.get())
                 break
-            broadcast(message, user)
+            broadcast(message, user, server_name.get())
 
         except Exception as e:
             print(colored(f"[-] Error: {e}", "red"))
-            user_logout(user)
+            user_logout(user, server_name.get())
             break
 
 #############################################################################################
@@ -70,7 +71,7 @@ def message_handler (user, private_key):
 # @return:
 # Receives a user and message, and sends the message to all users.
 ##############################################################################################
-def broadcast(message, origin_user):
+def broadcast(message, origin_user, servername):
     """
     broadcast function
     Sends a message to all users except the one who sent it
@@ -78,12 +79,13 @@ def broadcast(message, origin_user):
     :param origin_user: User that sent the message
     :return:
     """
+    server_name.set(servername)
     for user  in users_list:
         index = users_list.index(user)
         if user != origin_user:
             message_send = rsa.encrypt(message, public_key_list[index])
             user.send(message_send)
-    save_message(message)
+    save_message(message, server_name.get())
 
 #############################################################################################
 # save_message
@@ -91,13 +93,14 @@ def broadcast(message, origin_user):
 # @return:
 # Receives a message and stores it into a log file.
 ##############################################################################################
-def save_message(message):
+def save_message(message, servername):
     """
     save_message function
     Receives a message and stores it on a file encripted
     :param message: the message to save
     :return:
     """
+    server_name.set(servername)
     for user in users_list:
         index = users_list.index(user)
         username = username_list[index]
@@ -119,20 +122,21 @@ def save_message(message):
 # @return:
 # Receives a user, and removes it from the chat.
 ##############################################################################################
-def user_logout(user):
+def user_logout(user, servername):
     """
     user_logout function
     Disconnects and removes a user from the chat system.
     :param user: User to remove from the system.
     :return:
     """
+    servername.set(servername)
     index = users_list.index(user)
     users_list.remove(user)
     username = username_list[index]
     username_list.remove(username)
     public_key_list.remove(public_key_list[index])
     print(colored(f"{username} disconnected from the server!", "red"))
-    broadcast(f'{username} left the chat!'.encode(), user)
+    broadcast(f'{username} left the chat!'.encode(), user, server_name.get())
     user.close()
 
 #############################################################################################
@@ -142,7 +146,7 @@ def user_logout(user):
 # @return:
 # Receives input from users, starts a new thread for each client.
 ##############################################################################################
-def user_input(public_key, private_key):
+def user_input(public_key, private_key, servername):
     """
     user_input function
     receives the users inputs, both messages and commands, and processes them.
@@ -162,9 +166,9 @@ def user_input(public_key, private_key):
             users_list.append(user)
             public_key_list.append(user_public_key)
             print(colored(f"[+] Username: {username} is connected.", "green"))
-            broadcast(f"{username} is connected.".encode(), user)
+            broadcast(f"{username} is connected.".encode(), user, server_name.get())
             user.send(rsa.encrypt('Connected to server!'.encode(), user_public_key))
-            thread = threading.Thread(target=message_handler, args=(user, private_key,))
+            thread = threading.Thread(target=message_handler, args=(user, private_key, servername))
             thread.start()
         except Exception as e:
             print(colored(f"[-] Error: {e}", "red"))
@@ -200,7 +204,6 @@ def start_server(host, port, servername):
     :param port:
     :return:
     """
-
     server_name.set(servername)
     private_keys_local = PRIVATE_KEYS + server_name.get()  + ".pem"
     public_keys_local = PUBLIC_KEYS + server_name.get()  + ".pem"
@@ -208,7 +211,7 @@ def start_server(host, port, servername):
     public_key, private_key = KeyManager.get_rsa_keys(public_keys_local, private_keys_local)
     server.listen()
     print(colored(f"Server active on-> {host}:{port}\n", "green"))
-    user_input(public_key, private_key)
+    user_input(public_key, private_key, servername)
 
 #############################################################################################
 # register_user
@@ -248,20 +251,20 @@ def register_user(username, password):
 #############################################################################################
 # user_list
 # @args:
-# @return:
+# @return: list of users registered on the server
 # Reads the user list file and prints the result.
 ##############################################################################################
-def user_list():
+def get_user_list():
     """
-    user_list function
+    get_user_list function
     Gets the list of registered users.
     :return: List of registered users.
     """
     user_register_file =  USERS_REGISTER+server_name.get() +".json"
     if os.path.exists(user_register_file):
         with open(user_register_file, "r") as file:
-            users_list = json.load(file)
-            for user in users_list:
+            users_file = json.load(file)
+            for user in users_file:
                 print(colored(f"User: {user}", "green"))
 
 #############################################################################################
@@ -453,7 +456,7 @@ def start_data_server(server_ip, server_port, servername):
     server.listen()
     print(f"Stored Data Server listening on {server_ip}:{server_port}")
     server_public_key, server_private_key =  KeyManager.get_rsa_keys(public_keys_local, private_keys_local)
-    get_stored_data(server_public_key, server_private_key)
+    get_stored_data(server_public_key, server_private_key, server_name.get())
 
 
 ###############################################################
@@ -462,7 +465,7 @@ def start_data_server(server_ip, server_port, servername):
 #
 ###############################################################
 
-def get_stored_data(public_key, private_key):
+def get_stored_data(public_key, private_key, servername):
     """
     get_stored_data function
     Gets the user stored messages and returns it to the user.
@@ -470,7 +473,7 @@ def get_stored_data(public_key, private_key):
     :param private_key: Server private key
     :return: List of messages, or feedback if something goes wrong.
     """
-
+    server_name.set(servername)
     while True:
         try:
             user, address = server.accept()
@@ -482,9 +485,16 @@ def get_stored_data(public_key, private_key):
 
             if "/message_history" in message:
                 request, username = message.split(" ")
-                message_list = process_messages(username)
+                message_list = process_messages(username, server_name.get())
                 message_history = pickle.dumps(message_list)
                 user.sendall(message_history)
+            elif "/user_list" in message:
+                user_register_file = USERS_REGISTER + server_name.get() + ".json"
+                if os.path.isfile(user_register_file):
+                    with open(user_register_file, "r") as file:
+                        users_file = json.load(file)
+                    users_file_data = pickle.dumps(list(users_file.keys()))
+                    user.sendall(rsa.encrypt(users_file_data, user_public_key))
             else:
                 user.send(rsa.encrypt("Invalid Option.".encode(), user_public_key))
             user.close()
@@ -501,14 +511,14 @@ def get_stored_data(public_key, private_key):
 #
 ###############################################################
 
-def process_messages(username):
+def process_messages(username, servername):
     """
     process_messages function
     Opens the message file for the user, processes the data and returns the list of messages to be sent back.
     :param username: User username.
     :return: List of messages or null if something goes wrong.
     """
-    user_register_file = USERS_REGISTER + server_name.get()  + ".json"
+    user_register_file = USERS_REGISTER+server_name.get()+".json"
     with open(user_register_file, "r") as file:
         registered_users = json.load(file)
 

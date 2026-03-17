@@ -38,7 +38,8 @@ def main():
         print(colored(f"9-Register User", "green"))
         print(colored(f"10-Connect User to Secure Messaging", "green"))
         print(colored(f"11-Get Stored Messages", "green"))
-        print(colored(f"12-Port Knocking", "green"))
+        print(colored(f"12-Get Registered User List", "green"))
+        print(colored(f"13-Port Knocking", "green"))
         print(colored(f"q-Close Program", "red"))
         option = input(colored(f"->", "green"))
 
@@ -160,6 +161,22 @@ def main():
                 data_server_port = ArgumentMaker.insert_port()
                 User.get_message_history(data_server_IP, int(data_server_port), username)
         elif option == "12":
+            print(colored(f'Get Users List', 'blue'))
+            print(colored(f'Insert login server IP address.', "green"))
+            IP = ArgumentMaker.insert_IP()
+            print(colored(f'Insert login server port.', "green"))
+            port = ArgumentMaker.insert_port()
+            print(colored(f'Insert server name.', "green"))
+            servername = input("Name: ")
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            if User.login(IP, int(port), username, password, servername) == True:
+                print(colored(f'Insert Data Server IP', "green"))
+                data_server_IP = ArgumentMaker.insert_IP()
+                print(colored(f'Insert Data Server port.', "green"))
+                data_server_port = ArgumentMaker.insert_port()
+                User.get_users(data_server_IP, int(data_server_port), username)
+        elif option == "13":
             print(colored(f'Port Knocking', 'blue'))
             print(colored(f'Insert target IP address.', "green"))
             IP = ArgumentMaker.insert_IP()

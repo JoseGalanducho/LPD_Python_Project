@@ -252,8 +252,11 @@ def get_message_history(server_ip, server_port, username):
 
     print("\n")
     print(colored(f"{username} message history:", "green"))
-    for message in messages:
-        print(colored(message, "green"))
+    if len(messages) > 0:
+        for message in messages:
+            print(colored(message, "green"))
+    else:
+        print(colored("No messages found!", "red"))
 
 ############################################################################################
 # get_users
@@ -281,11 +284,11 @@ def get_users(server_ip, server_port, username):
     server_public_key = rsa.PublicKey.load_pkcs1(user.recv(1024))
     user.send(user_public_key.save_pkcs1("PEM"))
 
-    user.send(rsa.encrypt(f"/users".encode(), server_public_key))
+    user.send(rsa.encrypt(f"/user_list".encode(), server_public_key))
 
     user_list = b""
     while True:
-        chunk = user.recv(1024)
+        chunk = user.recv(4096)
         if not chunk:
             break
         user_list += chunk
